@@ -404,7 +404,7 @@ services:
       force-clone:
         condition: service_completed_successfully
     ports:
-      - '3044:3000'
+      - '3044:4173'
     stdin_open: true
     tty: true
     profiles:
