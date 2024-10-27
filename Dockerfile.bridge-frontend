@@ -14,3 +14,5 @@ COPY ./bridge/ui/package*.json ./
 RUN npm install
 
 COPY ./bridge/ui .
+
+EXPOSE 4173
