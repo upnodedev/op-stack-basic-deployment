@@ -212,13 +212,6 @@ services:
       service: redis-db
     profiles:
       - blockscout
-    depends_on:
-      op-geth:
-        condition: service_healthy
-      op-node:
-        condition: service_healthy
-      force-clone:
-        condition: service_completed_successfully
 
   blockscout-db-init:
     extends:
@@ -231,6 +224,8 @@ services:
         condition: service_healthy
       op-node:
         condition: service_healthy
+      opstack-bridge-indexer-db:
+        condition: service_healthy
       force-clone:
         condition: service_completed_successfully
 
@@ -238,31 +233,16 @@ services:
     depends_on:
       blockscout-db-init:
         condition: service_completed_successfully
-      op-geth:
-        condition: service_healthy
-      op-node:
-        condition: service_healthy
-      force-clone:
-        condition: service_completed_successfully
     extends:
       file: ./blockscout/services/db.yml
       service: db
     profiles:
       - blockscout
 
-
   blockscout-backend:
     depends_on:
-      blockscout-redis-db:
-        condition: service_healthy
-      blockscout-db:
-        condition: service_healthy
-      op-geth:
-        condition: service_healthy
-      op-node:
-        condition: service_healthy
-      force-clone:
-        condition: service_completed_successfully
+      - blockscout-db
+      - blockscout-redis-db
     extends:
       file: ./blockscout/services/backend.yml
       service: backend
@@ -282,16 +262,6 @@ services:
       service: visualizer
     profiles:
       - blockscout
-    depends_on:
-      blockscout-db-init:
-        condition: service_completed_successfully
-      op-geth:
-        condition: service_healthy
-      op-node:
-        condition: service_healthy
-      force-clone:
-        condition: service_completed_successfully
-
 
   blockscout-sig-provider:
     extends:
@@ -299,26 +269,10 @@ services:
       service: sig-provider
     profiles:
       - blockscout
-    depends_on:
-      blockscout-db-init:
-        condition: service_completed_successfully
-      op-geth:
-        condition: service_healthy
-      op-node:
-        condition: service_healthy
-      force-clone:
-        condition: service_completed_successfully
 
   blockscout-frontend:
     depends_on:
-      blockscout-backend:
-        condition: service_healthy
-      op-geth:
-        condition: service_healthy
-      op-node:
-        condition: service_healthy
-      force-clone:
-        condition: service_completed_successfully
+      - blockscout-backend
     extends:
       file: ./blockscout/services/frontend.yml
       service: frontend
@@ -331,23 +285,10 @@ services:
       service: stats-db-init
     profiles:
       - blockscout
-    depends_on:
-      op-geth:
-        condition: service_healthy
-      op-node:
-        condition: service_healthy
-      force-clone:
-        condition: service_completed_successfully
 
   blockscout-stats-db:
     depends_on:
       blockscout-stats-db-init:
-        condition: service_completed_successfully
-      op-geth:
-        condition: service_healthy
-      op-node:
-        condition: service_healthy
-      force-clone:
         condition: service_completed_successfully
     extends:
       file: ./blockscout/services/stats.yml
@@ -357,16 +298,8 @@ services:
 
   blockscout-stats:
     depends_on:
-      blockscout-stats-db:
-        condition: service_healthy
-      blockscout-backend:
-        condition: service_healthy
-      op-geth:
-        condition: service_healthy
-      op-node:
-        condition: service_healthy
-      force-clone:
-        condition: service_completed_successfully
+      - blockscout-stats-db
+      - blockscout-backend
     extends:
       file: ./blockscout/services/stats.yml
       service: stats
@@ -375,18 +308,9 @@ services:
 
   blockscout-proxy:
     depends_on:
-      blockscout-backend:
-        condition: service_healthy
-      blockscout-frontend:
-        condition: service_healthy
-      blockscout-stats:
-        condition: service_healthy
-      op-geth:
-        condition: service_healthy
-      op-node:
-        condition: service_healthy
-      force-clone:
-        condition: service_completed_successfully
+      - blockscout-backend
+      - blockscout-frontend
+      - blockscout-stats
     extends:
       file: ./blockscout/services/nginx.yml
       service: proxy
@@ -497,7 +421,20 @@ services:
     volumes:
       - ./data/deployments:/app/data/deployments
     entrypoint: ["sh", "-c", "./config-bridge-ui.sh && npm run build && npm run preview"]
-
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/certs:/etc/nginx/certs
+    depends_on:
+      - opstack-bridge-indexer-server
+      - opstack-bridge-indexer-frontend
+    restart: unless-stopped
+    profiles:
+      - nginx
 
 volumes:
   grafana_data:
