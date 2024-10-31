@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   force-clone:
     build:
@@ -12,7 +10,6 @@ services:
       - ./data/configurations:/app/data/configurations
       - ./data/bin:/app/data/bin
       - ./data/datadir:/app/data/datadir
-
     env_file:
       - .env
       - paths.env
@@ -24,7 +21,6 @@ services:
       dockerfile: Dockerfile.celestia
     volumes:
       - ./data/celestia:/home/celestia/${TARGET_FOLDER_NAME}/
-
     command: ["/bin/bash", "-c", "/app/celestia-da.sh"]
     env_file:
       - .env
@@ -66,7 +62,6 @@ services:
       - ./data/bin:/app/data/bin
       - ./data/datadir:/app/data/datadir
       - ./data/configurations:/app/data/configurations
-
     depends_on:
       force-clone:
         condition: service_completed_successfully
@@ -101,7 +96,6 @@ services:
     volumes:
       - ./data/bin:/app/data/bin
       - ./data/configurations:/app/data/configurations
-
     depends_on:
       op-geth:
         condition: service_healthy
@@ -132,7 +126,6 @@ services:
         ENTRYPOINT_SCRIPT: op-batcher.sh
     volumes:
       - ./data/bin:/app/data/bin
-
     depends_on:
       op-geth:
         condition: service_healthy
@@ -160,7 +153,6 @@ services:
     volumes:
       - ./data/bin:/app/data/bin
       - ./data/deployments:/app/data/deployments
-
     depends_on:
       op-geth:
         condition: service_healthy
@@ -187,8 +179,7 @@ services:
   #   volumes:
   #     - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/:ro
   #     - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
-  #     - ./data/grafana-data:/var/lib/grafana
-
+  #     - grafana_data:/var/lib/grafana
   #   ports:
   #     - 3000:3000
 
@@ -199,10 +190,10 @@ services:
   #     - .env
   #   volumes:
   #     - ./monitoring/prometheus:/etc/prometheus
-  #     - ./data/prometheus-data:/prometheus
-
+  #     - prometheus_data:/prometheus
   #   ports:
   #     - 9090:9090
+
   # json-server:
   #   build:
   #     context: ./serve
@@ -220,7 +211,6 @@ services:
       service: redis-db
     profiles:
       - blockscout
-    volumes:
 
   blockscout-db-init:
     extends:
@@ -345,6 +335,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
   opstack-bridge-indexer-deposit:
     depends_on:
       op-geth:
@@ -359,7 +350,6 @@ services:
       context: .
       dockerfile: Dockerfile.indexer
     restart: unless-stopped
-    # command: ["./wait-for-it.sh", "opstack-bridge-indexer-db:5432", "--",'npm', 'run', 'deposit']
     entrypoint:
       ["sh", "-c", "./config-bridge.sh && npm run build && npm run deposit"]
     stdin_open: true
@@ -383,7 +373,6 @@ services:
       context: .
       dockerfile: Dockerfile.indexer
     restart: unless-stopped
-    # command: ["./wait-for-it.sh", "opstack-bridge-indexer-db:5432", "--",'npm', 'run', 'withdrawal']
     entrypoint:
       ["sh", "-c", "./config-bridge.sh && npm run build && npm run withdrawal"]
     stdin_open: true
@@ -409,7 +398,6 @@ services:
         condition: service_completed_successfully
     ports:
       - "3043:3000"
-    # command: ['./wait-for-it.sh', 'opstack-bridge-indexer-db:5432', '--', 'npm', 'run', 'server']
     entrypoint:
       ["sh", "-c", "./config-bridge.sh && npm run build && npm run server"]
     stdin_open: true
