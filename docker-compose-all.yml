@@ -195,15 +195,6 @@ services:
       - prometheus_data:/prometheus
     ports:
       - 9090:9090
-  json-server:
-    build:
-      context: ./serve
-      dockerfile: Dockerfile
-    volumes:
-      - ./data/deployments:/app/data/deployments
-    ports:
-      - "3001:3001"
-    restart: unless-stopped
 
   # blockscout services
   blockscout-redis-db:
