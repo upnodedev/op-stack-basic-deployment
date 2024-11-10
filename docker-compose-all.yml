@@ -67,9 +67,9 @@ services:
     depends_on:
       force-clone:
         condition: service_completed_successfully
-      celestia-da:
-        condition: service_healthy
-        required: false
+      # celestia-da:
+      #   condition: service_healthy
+        # required: false
     env_file:
       - .env
       - paths.env
