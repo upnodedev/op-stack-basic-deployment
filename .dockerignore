@@ -1,7 +1,6 @@
 # data
 data/bin
 data/bridge-indexer-db-data
-data/configurations
 data/datadir
 data/op-geth
 data/optimism
