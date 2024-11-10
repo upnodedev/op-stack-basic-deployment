@@ -69,7 +69,7 @@ services:
         condition: service_completed_successfully
       celestia-da:
         condition: service_healthy
-        required: false
+        # required: false
     env_file:
       - .env
       - paths.env
