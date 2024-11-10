@@ -1,0 +1,430 @@
+version: "3.9"
+
+services:
+  force-clone:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./data/optimism:/app/data/optimism
+      - ./data/op-geth:/app/data/op-geth
+      - ./data/deployments:/app/data/deployments
+      - ./data/configurations:/app/data/configurations
+      - ./data/bin:/app/data/bin
+      - ./data/datadir:/app/data/datadir
+    env_file:
+      - .env
+      - paths.env
+
+  celestia-da:
+    user: root
+    build:
+      context: .
+      dockerfile: Dockerfile.celestia
+    volumes:
+      - ./data/celestia:/home/celestia/${TARGET_FOLDER_NAME}/
+    command: ["/bin/bash", "-c", "/app/celestia-da.sh"]
+    env_file:
+      - .env
+      - paths.env
+      - celestia.env
+    expose:
+      - 26650
+    ports:
+      - "26659:26659"
+      - "26658:26658"
+    healthcheck:
+      test: [
+          "CMD-SHELL",
+          "\
+          if [ \"$${SKIP_HEALTHCHECK}\" = \"true\" ]; then \
+          curl -f http://localhost:26659/header/1; \
+          else \
+          authToken=$$(celestia-da ${CELESTIA_NODE_TYPE} auth admin --p2p.network $$DA_P2P_NETWORK) && \
+          catch_up_done=$$(curl -s -X POST -H 'Content-Type: application/json' -H \"Authorization: Bearer $$authToken\" --data '{\"id\":1, \"jsonrpc\":\"2.0\", \"method\":\"das.SamplingStats\", \"params\":[]}' http://localhost:26658 | jq -r '.result.catch_up_done') && \
+          [ \"$$catch_up_done\" = \"true\" ]; \
+          fi",
+        ]
+      interval: 2m
+      timeout: 10s
+      retries: 60
+    stop_grace_period: 10m
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    profiles: ["celestia"]
+
+  op-geth:
+    build:
+      context: .
+      dockerfile: Dockerfile.services
+      args:
+        ENTRYPOINT_SCRIPT: op-geth.sh
+    volumes:
+      - ./data/bin:/app/data/bin
+      - ./data/datadir:/app/data/datadir
+      - ./data/configurations:/app/data/configurations
+    depends_on:
+      force-clone:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+      - paths.env
+      - opgeth.env
+    ports:
+      - "8545:8545"
+      - "7303:7303"
+      - "30333:30333/udp"
+      - "30333:30333/tcp"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8545 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 15
+    stop_grace_period: 1h
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  op-node:
+    build:
+      context: .
+      dockerfile: Dockerfile.services
+      args:
+        ENTRYPOINT_SCRIPT: op-node.sh
+    volumes:
+      - ./data/bin:/app/data/bin
+      - ./data/configurations:/app/data/configurations
+    depends_on:
+      op-geth:
+        condition: service_healthy
+    env_file:
+      - .env
+      - paths.env
+      - opnode.env
+    ports:
+      - "8547:8547"
+      - "7300:7300"
+      - "9221:9221/udp"
+      - "9221:9221/tcp"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8547 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    stop_grace_period: 10m
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  op-batcher:
+    build:
+      context: .
+      dockerfile: Dockerfile.services
+      args:
+        ENTRYPOINT_SCRIPT: op-batcher.sh
+    volumes:
+      - ./data/bin:/app/data/bin
+    depends_on:
+      op-geth:
+        condition: service_healthy
+      op-node:
+        condition: service_healthy
+    env_file:
+      - .env
+      - paths.env
+      - opbatcher.env
+    ports:
+      - "8548:8548"
+      - "7301:7301"
+    stop_grace_period: 1m30s
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    profiles: ["sequencer"]
+
+  op-proposer:
+    build:
+      context: .
+      dockerfile: Dockerfile.services
+      args:
+        ENTRYPOINT_SCRIPT: op-proposer.sh
+    volumes:
+      - ./data/bin:/app/data/bin
+      - ./data/deployments:/app/data/deployments
+    depends_on:
+      op-geth:
+        condition: service_healthy
+      op-node:
+        condition: service_healthy
+    env_file:
+      - .env
+      - paths.env
+      - opproposer.env
+    ports:
+      - "8560:8560"
+      - "7302:7302"
+    stop_grace_period: 1m30s
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    profiles: ["sequencer"]
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    restart: unless-stopped
+    env_file:
+      - grafana.env
+    volumes:
+      - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+      - ./data/grafana:/var/lib/grafana
+    ports:
+      - 3000:3000
+
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+      - ./data/prometheus:/prometheus
+    ports:
+      - 9090:9090
+
+  # json-server:
+  #   build:
+  #     context: ./serve
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - ./data/deployments:/app/data/deployments
+  #   ports:
+  #     - "3001:3001"
+  #   restart: unless-stopped
+
+  # blockscout services
+  blockscout-redis-db:
+    extends:
+      file: ./blockscout/services/redis.yml
+      service: redis-db
+    profiles:
+      - blockscout
+
+  blockscout-db-init:
+    extends:
+      file: ./blockscout/services/db.yml
+      service: db-init
+    profiles:
+      - blockscout
+    depends_on:
+      op-geth:
+        condition: service_healthy
+      op-node:
+        condition: service_healthy
+      opstack-bridge-indexer-db:
+        condition: service_healthy
+      force-clone:
+        condition: service_completed_successfully
+
+  blockscout-db:
+    depends_on:
+      blockscout-db-init:
+        condition: service_completed_successfully
+    extends:
+      file: ./blockscout/services/db.yml
+      service: db
+    profiles:
+      - blockscout
+
+  blockscout-backend:
+    depends_on:
+      - blockscout-db
+      - blockscout-redis-db
+    extends:
+      file: ./blockscout/services/backend.yml
+      service: backend
+    links:
+      - blockscout-db:database
+    environment:
+      ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545/
+      ETHEREUM_JSONRPC_TRACE_URL: http://host.docker.internal:8545/
+      ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545/
+      CHAIN_ID: "1337"
+    profiles:
+      - blockscout
+
+  blockscout-visualizer:
+    extends:
+      file: ./blockscout/services/visualizer.yml
+      service: visualizer
+    profiles:
+      - blockscout
+
+  blockscout-sig-provider:
+    extends:
+      file: ./blockscout/services/sig-provider.yml
+      service: sig-provider
+    profiles:
+      - blockscout
+
+  blockscout-frontend:
+    depends_on:
+      - blockscout-backend
+    extends:
+      file: ./blockscout/services/frontend.yml
+      service: frontend
+    profiles:
+      - blockscout
+
+  blockscout-stats-db-init:
+    extends:
+      file: ./blockscout/services/stats.yml
+      service: stats-db-init
+    profiles:
+      - blockscout
+
+  blockscout-stats-db:
+    depends_on:
+      blockscout-stats-db-init:
+        condition: service_completed_successfully
+    extends:
+      file: ./blockscout/services/stats.yml
+      service: stats-db
+    profiles:
+      - blockscout
+
+  blockscout-stats:
+    depends_on:
+      - blockscout-stats-db
+      - blockscout-backend
+    extends:
+      file: ./blockscout/services/stats.yml
+      service: stats
+    profiles:
+      - blockscout
+
+  blockscout-proxy:
+    depends_on:
+      - blockscout-backend
+      - blockscout-frontend
+      - blockscout-stats
+    extends:
+      file: ./blockscout/services/nginx.yml
+      service: proxy
+    profiles:
+      - blockscout
+
+  # bridge
+  opstack-bridge-indexer-db:
+    image: postgres:13
+    restart: unless-stopped
+    env_file:
+      - indexer.env
+    volumes:
+      - ./data/bridge-indexer-db-data:/var/lib/postgresql/data
+      # init schema
+      - ./bridge/indexer/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "7512:5432"
+    profiles:
+      - opstack-bridge
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  opstack-bridge-indexer-deposit:
+    depends_on:
+      op-geth:
+        condition: service_healthy
+      op-node:
+        condition: service_healthy
+      opstack-bridge-indexer-db:
+        condition: service_healthy
+      force-clone:
+        condition: service_completed_successfully
+    build:
+      context: .
+      dockerfile: Dockerfile.indexer
+    restart: unless-stopped
+    entrypoint:
+      ["sh", "-c", "./config-bridge.sh && npm run build && npm run deposit"]
+    stdin_open: true
+    tty: true
+    profiles:
+      - opstack-bridge
+    volumes:
+      - ./data/deployments:/app/data/deployments
+
+  opstack-bridge-indexer-withdrawal:
+    depends_on:
+      op-geth:
+        condition: service_healthy
+      op-node:
+        condition: service_healthy
+      opstack-bridge-indexer-db:
+        condition: service_healthy
+      force-clone:
+        condition: service_completed_successfully
+    build:
+      context: .
+      dockerfile: Dockerfile.indexer
+    restart: unless-stopped
+    entrypoint:
+      ["sh", "-c", "./config-bridge.sh && npm run build && npm run withdrawal"]
+    stdin_open: true
+    tty: true
+    profiles:
+      - opstack-bridge
+    volumes:
+      - ./data/deployments:/app/data/deployments
+
+  opstack-bridge-indexer-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.indexer
+    restart: unless-stopped
+    depends_on:
+      op-geth:
+        condition: service_healthy
+      op-node:
+        condition: service_healthy
+      opstack-bridge-indexer-db:
+        condition: service_healthy
+      force-clone:
+        condition: service_completed_successfully
+    ports:
+      - "3043:3000"
+    entrypoint:
+      ["sh", "-c", "./config-bridge.sh && npm run build && npm run server"]
+    stdin_open: true
+    tty: true
+    profiles:
+      - opstack-bridge
+    volumes:
+      - ./data/deployments:/app/data/deployments
+
+  opstack-bridge-indexer-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.bridge-frontend
+    restart: unless-stopped
+    depends_on:
+      force-clone:
+        condition: service_completed_successfully
+    ports:
+      - "3044:4173"
+    stdin_open: true
+    tty: true
+    profiles:
+      - opstack-bridge
+    volumes:
+      - ./data/deployments:/app/data/deployments
+    entrypoint:
+      ["sh", "-c", "./config-bridge-ui.sh && npm run build && npm run preview"]
+
+# volumes:
+#   grafana_data:
+#   prometheus_data:
