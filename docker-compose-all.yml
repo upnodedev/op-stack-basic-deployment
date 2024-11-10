@@ -181,7 +181,7 @@ services:
     volumes:
       - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/:ro
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
-      - ./data/grafana_data:/var/lib/grafana
+      - grafana_data:/var/lib/grafana
     ports:
       - 3000:3000
 
@@ -192,7 +192,7 @@ services:
       - .env
     volumes:
       - ./monitoring/prometheus:/etc/prometheus
-      - ./data/prometheus_data:/prometheus
+      - prometheus_data:/prometheus
     ports:
       - 9090:9090
 
