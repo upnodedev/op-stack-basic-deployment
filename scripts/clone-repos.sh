@@ -55,7 +55,7 @@ clone_repo() {
 
   # Clone the repository
   echo "Cloning $repo_url into $dest_dir"
-  git clone "$repo_url" .
+  git clone --recursive "$repo_url" .
   echo "Cloning complete"
 
   # Checkout to the specific branch or commit

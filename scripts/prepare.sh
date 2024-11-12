@@ -10,9 +10,7 @@ set -e
 if [ ! -f "$BIN_DIR/op-node" ] || [ ! -f "$BIN_DIR/op-batcher" ] || [ ! -f "$BIN_DIR/op-proposer" ] || [ ! -f "$BIN_DIR/geth" ]; then
   # Build op-node, op-batcher and op-proposer
   cd "$OPTIMISM_DIR"
-  pnpm install
   make op-node op-batcher op-proposer
-  pnpm build
 
   # Copy binaries to the bin volume
   cp -f "$OPTIMISM_DIR"/op-node/bin/op-node "$BIN_DIR"/
@@ -126,7 +124,7 @@ if [ ! -f "$DEPLOYMENT_DIR"/artifact.json ]; then
   DEPLOY_SCRIPT_PATH=$(test -f scripts/deploy/Deploy.s.sol && echo "scripts/deploy/Deploy.s.sol" || echo "scripts/Deploy.s.sol")
 
   # Deploy the L1 contracts
-  forge script "$DEPLOY_SCRIPT_PATH" --private-key "$DEPLOYER_PRIVATE_KEY" --broadcast --rpc-url "$L1_RPC_URL"
+  forge script $DEPLOY_SCRIPT_PATH --private-key "$DEPLOYER_PRIVATE_KEY" --broadcast --rpc-url "$L1_RPC_URL"
 
   # Copy the deployment files to the data volume
   cp $DEPLOYMENT_OUTFILE "$DEPLOYMENT_DIR"/
