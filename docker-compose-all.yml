@@ -69,7 +69,7 @@ services:
         condition: service_completed_successfully
       # celestia-da:
       #   condition: service_healthy
-        # required: false
+      # required: false
     env_file:
       - .env
       # - paths.env
@@ -88,6 +88,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
+    networks:
+      - traefik-network
 
   op-node:
     build:
@@ -185,6 +187,8 @@ services:
       - ./data/grafana:/var/lib/grafana
     ports:
       - 3000:3000
+    networks:
+      - traefik-network
 
   prometheus:
     image: prom/prometheus:latest
@@ -197,6 +201,8 @@ services:
       - ./data/prometheus:/prometheus
     ports:
       - 9090:9090
+    networks:
+      - traefik-network
 
   # json-server:
   #   build:
@@ -258,6 +264,8 @@ services:
       CHAIN_ID: "1337"
     profiles:
       - blockscout
+    networks:
+      - traefik-network
 
   blockscout-visualizer:
     extends:
@@ -265,6 +273,8 @@ services:
       service: visualizer
     profiles:
       - blockscout
+    networks:
+      - traefik-network
 
   blockscout-sig-provider:
     extends:
@@ -281,6 +291,8 @@ services:
       service: frontend
     profiles:
       - blockscout
+    networks:
+      - traefik-network
 
   blockscout-stats-db-init:
     extends:
@@ -308,6 +320,8 @@ services:
       service: stats
     profiles:
       - blockscout
+    networks:
+      - traefik-network
 
   blockscout-proxy:
     depends_on:
@@ -410,6 +424,8 @@ services:
       - opstack-bridge
     volumes:
       - ./data/deployments:/app/data/deployments
+    networks:
+      - traefik-network
 
   opstack-bridge-indexer-frontend:
     build:
@@ -429,7 +445,13 @@ services:
       - ./data/deployments:/app/data/deployments
     entrypoint:
       ["sh", "-c", "./config-bridge-ui.sh && npm run build && npm run preview"]
+    networks:
+      - traefik-network
 
 # volumes:
 #   grafana_data:
 #   prometheus_data:
+
+networks:
+  traefik-network:
+    driver: bridge
