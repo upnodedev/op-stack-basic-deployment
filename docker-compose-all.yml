@@ -67,8 +67,8 @@ services:
     depends_on:
       force-clone:
         condition: service_completed_successfully
-      celestia-da:
-        condition: service_healthy
+      # celestia-da:
+      #   condition: service_healthy
         # required: false
     env_file:
       - .env
@@ -175,6 +175,7 @@ services:
 
   grafana:
     image: grafana/grafana:11.1.0
+    user: root
     restart: unless-stopped
     env_file:
       - grafana.env
@@ -187,6 +188,7 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
+    user: root
     restart: unless-stopped
     env_file:
       - .env
