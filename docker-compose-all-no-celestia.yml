@@ -95,13 +95,14 @@ services:
     volumes:
       - ./data/bin:/app/data/bin
       - ./data/configurations:/app/data/configurations
-    depends_on:
-      op-geth:
-        condition: service_healthy
+    # depends_on:
+    #   op-geth:
+    #     condition: service_healthy
     env_file:
       - .env
       - paths.env
       - opnode.env
+
     ports:
       - "8547:8547"
       - "7300:7300"

@@ -21,4 +21,7 @@ else
   echo "Sequencer is not enabled. Skipping fetching OP_NODE_P2P_SEQUENCER_KEY."
 fi
 
-exec "$BIN_DIR"/op-node
+# exec "$BIN_DIR"/op-node
+
+# sleep infinity
+sleep infinity

@@ -14,7 +14,7 @@ services:
       - ./data/datadir:/app/data/datadir
     env_file:
       - .env
-      - paths.env
+      # - paths.env
 
   celestia-da:
     user: root
@@ -26,8 +26,8 @@ services:
     command: ["/bin/bash", "-c", "/app/celestia-da.sh"]
     env_file:
       - .env
-      - paths.env
-      - celestia.env
+      # - paths.env
+      # - celestia.env
     expose:
       - 26650
     ports:
@@ -72,8 +72,8 @@ services:
         # required: false
     env_file:
       - .env
-      - paths.env
-      - opgeth.env
+      # - paths.env
+      # - opgeth.env
     ports:
       - "8545:8545"
       - "7303:7303"
@@ -103,8 +103,8 @@ services:
         condition: service_healthy
     env_file:
       - .env
-      - paths.env
-      - opnode.env
+      # - paths.env
+      # - opnode.env
     ports:
       - "8547:8547"
       - "7300:7300"
@@ -135,8 +135,8 @@ services:
         condition: service_healthy
     env_file:
       - .env
-      - paths.env
-      - opbatcher.env
+      # - paths.env
+      # - opbatcher.env
     ports:
       - "8548:8548"
       - "7301:7301"
@@ -162,8 +162,8 @@ services:
         condition: service_healthy
     env_file:
       - .env
-      - paths.env
-      - opproposer.env
+      # - paths.env
+      # - opproposer.env
     ports:
       - "8560:8560"
       - "7302:7302"
