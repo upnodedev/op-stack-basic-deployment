@@ -16,192 +16,192 @@ services:
       - .env
       # - paths.env
 
-  celestia-da:
-    user: root
-    build:
-      context: .
-      dockerfile: Dockerfile.celestia
-    volumes:
-      - ./data/celestia:/home/celestia/${TARGET_FOLDER_NAME}/
-    command: ["/bin/bash", "-c", "/app/celestia-da.sh"]
-    env_file:
-      - .env
-      # - paths.env
-      # - celestia.env
-    expose:
-      - 26650
-    ports:
-      - "26659:26659"
-      - "26658:26658"
-    healthcheck:
-      test: [
-          "CMD-SHELL",
-          "\
-          if [ \"$${SKIP_HEALTHCHECK}\" = \"true\" ]; then \
-          curl -f http://localhost:26659/header/1; \
-          else \
-          authToken=$$(celestia-da ${CELESTIA_NODE_TYPE} auth admin --p2p.network $$DA_P2P_NETWORK) && \
-          catch_up_done=$$(curl -s -X POST -H 'Content-Type: application/json' -H \"Authorization: Bearer $$authToken\" --data '{\"id\":1, \"jsonrpc\":\"2.0\", \"method\":\"das.SamplingStats\", \"params\":[]}' http://localhost:26658 | jq -r '.result.catch_up_done') && \
-          [ \"$$catch_up_done\" = \"true\" ]; \
-          fi",
-        ]
-      interval: 2m
-      timeout: 10s
-      retries: 60
-    stop_grace_period: 10m
-    restart: always
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    profiles: ["celestia"]
+  # celestia-da:
+  #   user: root
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.celestia
+  #   volumes:
+  #     - ./data/celestia:/home/celestia/${TARGET_FOLDER_NAME}/
+  #   command: ["/bin/bash", "-c", "/app/celestia-da.sh"]
+  #   env_file:
+  #     - .env
+  #     # - paths.env
+  #     # - celestia.env
+  #   expose:
+  #     - 26650
+  #   ports:
+  #     - "26659:26659"
+  #     - "26658:26658"
+  #   healthcheck:
+  #     test: [
+  #         "CMD-SHELL",
+  #         "\
+  #         if [ \"$${SKIP_HEALTHCHECK}\" = \"true\" ]; then \
+  #         curl -f http://localhost:26659/header/1; \
+  #         else \
+  #         authToken=$$(celestia-da ${CELESTIA_NODE_TYPE} auth admin --p2p.network $$DA_P2P_NETWORK) && \
+  #         catch_up_done=$$(curl -s -X POST -H 'Content-Type: application/json' -H \"Authorization: Bearer $$authToken\" --data '{\"id\":1, \"jsonrpc\":\"2.0\", \"method\":\"das.SamplingStats\", \"params\":[]}' http://localhost:26658 | jq -r '.result.catch_up_done') && \
+  #         [ \"$$catch_up_done\" = \"true\" ]; \
+  #         fi",
+  #       ]
+  #     interval: 2m
+  #     timeout: 10s
+  #     retries: 60
+  #   stop_grace_period: 10m
+  #   restart: always
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   profiles: ["celestia"]
 
-  op-geth:
-    build:
-      context: .
-      dockerfile: Dockerfile.services
-      args:
-        ENTRYPOINT_SCRIPT: op-geth.sh
-    volumes:
-      - ./data/bin:/app/data/bin
-      - ./data/datadir:/app/data/datadir
-      - ./data/configurations:/app/data/configurations
-    depends_on:
-      force-clone:
-        condition: service_completed_successfully
-      # celestia-da:
-      #   condition: service_healthy
-      # required: false
-    env_file:
-      - .env
-      # - paths.env
-      # - opgeth.env
-    ports:
-      - "8545:8545"
-      - "7303:7303"
-      - "30333:30333/udp"
-      - "30333:30333/tcp"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8545 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 15
-    stop_grace_period: 1h
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    restart: unless-stopped
-    networks:
-      - traefik-network
+  # op-geth:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.services
+  #     args:
+  #       ENTRYPOINT_SCRIPT: op-geth.sh
+  #   volumes:
+  #     - ./data/bin:/app/data/bin
+  #     - ./data/datadir:/app/data/datadir
+  #     - ./data/configurations:/app/data/configurations
+  #   depends_on:
+  #     force-clone:
+  #       condition: service_completed_successfully
+  #     # celestia-da:
+  #     #   condition: service_healthy
+  #     # required: false
+  #   env_file:
+  #     - .env
+  #     # - paths.env
+  #     # - opgeth.env
+  #   ports:
+  #     - "8545:8545"
+  #     - "7303:7303"
+  #     - "30333:30333/udp"
+  #     - "30333:30333/tcp"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -f http://localhost:8545 || exit 1"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 15
+  #   stop_grace_period: 1h
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   restart: unless-stopped
+  #   networks:
+  #     - traefik-network
 
-  op-node:
-    build:
-      context: .
-      dockerfile: Dockerfile.services
-      args:
-        ENTRYPOINT_SCRIPT: op-node.sh
-    volumes:
-      - ./data/bin:/app/data/bin
-      - ./data/configurations:/app/data/configurations
-    depends_on:
-      op-geth:
-        condition: service_healthy
-    env_file:
-      - .env
-      # - paths.env
-      # - opnode.env
-    ports:
-      - "8547:8547"
-      - "7300:7300"
-      - "9221:9221/udp"
-      - "9221:9221/tcp"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8547 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    stop_grace_period: 10m
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    restart: unless-stopped
+  # op-node:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.services
+  #     args:
+  #       ENTRYPOINT_SCRIPT: op-node.sh
+  #   volumes:
+  #     - ./data/bin:/app/data/bin
+  #     - ./data/configurations:/app/data/configurations
+  #   depends_on:
+  #     op-geth:
+  #       condition: service_healthy
+  #   env_file:
+  #     - .env
+  #     # - paths.env
+  #     # - opnode.env
+  #   ports:
+  #     - "8547:8547"
+  #     - "7300:7300"
+  #     - "9221:9221/udp"
+  #     - "9221:9221/tcp"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -f http://localhost:8547 || exit 1"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #   stop_grace_period: 10m
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   restart: unless-stopped
 
-  op-batcher:
-    build:
-      context: .
-      dockerfile: Dockerfile.services
-      args:
-        ENTRYPOINT_SCRIPT: op-batcher.sh
-    volumes:
-      - ./data/bin:/app/data/bin
-    depends_on:
-      op-geth:
-        condition: service_healthy
-      op-node:
-        condition: service_healthy
-    env_file:
-      - .env
-      # - paths.env
-      # - opbatcher.env
-    ports:
-      - "8548:8548"
-      - "7301:7301"
-    stop_grace_period: 1m30s
-    restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    profiles: ["sequencer"]
+  # op-batcher:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.services
+  #     args:
+  #       ENTRYPOINT_SCRIPT: op-batcher.sh
+  #   volumes:
+  #     - ./data/bin:/app/data/bin
+  #   depends_on:
+  #     op-geth:
+  #       condition: service_healthy
+  #     op-node:
+  #       condition: service_healthy
+  #   env_file:
+  #     - .env
+  #     # - paths.env
+  #     # - opbatcher.env
+  #   ports:
+  #     - "8548:8548"
+  #     - "7301:7301"
+  #   stop_grace_period: 1m30s
+  #   restart: unless-stopped
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   profiles: ["sequencer"]
 
-  op-proposer:
-    build:
-      context: .
-      dockerfile: Dockerfile.services
-      args:
-        ENTRYPOINT_SCRIPT: op-proposer.sh
-    volumes:
-      - ./data/bin:/app/data/bin
-      - ./data/deployments:/app/data/deployments
-    depends_on:
-      op-geth:
-        condition: service_healthy
-      op-node:
-        condition: service_healthy
-    env_file:
-      - .env
-      # - paths.env
-      # - opproposer.env
-    ports:
-      - "8560:8560"
-      - "7302:7302"
-    stop_grace_period: 1m30s
-    restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    profiles: ["sequencer"]
+  # op-proposer:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.services
+  #     args:
+  #       ENTRYPOINT_SCRIPT: op-proposer.sh
+  #   volumes:
+  #     - ./data/bin:/app/data/bin
+  #     - ./data/deployments:/app/data/deployments
+  #   depends_on:
+  #     op-geth:
+  #       condition: service_healthy
+  #     op-node:
+  #       condition: service_healthy
+  #   env_file:
+  #     - .env
+  #     # - paths.env
+  #     # - opproposer.env
+  #   ports:
+  #     - "8560:8560"
+  #     - "7302:7302"
+  #   stop_grace_period: 1m30s
+  #   restart: unless-stopped
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   profiles: ["sequencer"]
 
-  grafana:
-    image: grafana/grafana:11.1.0
-    user: root
-    restart: unless-stopped
-    env_file:
-      - grafana.env
-    volumes:
-      - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/:ro
-      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
-      - ./data/grafana:/var/lib/grafana
-    ports:
-      - 3000:3000
-    networks:
-      - traefik-network
+  # grafana:
+  #   image: grafana/grafana:11.1.0
+  #   user: root
+  #   restart: unless-stopped
+  #   env_file:
+  #     - grafana.env
+  #   volumes:
+  #     - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/:ro
+  #     - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+  #     - ./data/grafana:/var/lib/grafana
+  #   ports:
+  #     - 3000:3000
+  #   networks:
+  #     - traefik-network
 
-  prometheus:
-    image: prom/prometheus:latest
-    user: root
-    restart: unless-stopped
-    env_file:
-      - .env
-    volumes:
-      - ./monitoring/prometheus:/etc/prometheus
-      - ./data/prometheus:/prometheus
-    ports:
-      - 9090:9090
-    networks:
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   user: root
+  #   restart: unless-stopped
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - ./monitoring/prometheus:/etc/prometheus
+  #     - ./data/prometheus:/prometheus
+  #   ports:
+  #     - 9090:9090
+  #   networks:
       - traefik-network
 
   # json-server:
