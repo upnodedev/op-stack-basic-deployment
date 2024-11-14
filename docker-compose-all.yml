@@ -173,262 +173,262 @@ services:
       - "host.docker.internal:host-gateway"
     profiles: ["sequencer"]
 
-  # grafana:
-  #   image: grafana/grafana:11.1.0
-  #   user: root
-  #   restart: unless-stopped
-  #   env_file:
-  #     - grafana.env
-  #   volumes:
-  #     - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/:ro
-  #     - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
-  #     - ./data/grafana:/var/lib/grafana
-  #   ports:
-  #     - 3000:3000
+  grafana:
+    image: grafana/grafana:11.1.0
+    user: root
+    restart: unless-stopped
+    env_file:
+      - grafana.env
+    volumes:
+      - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+      - ./data/grafana:/var/lib/grafana
+    ports:
+      - 3000:3000
 
-  # prometheus:
-  #   image: prom/prometheus:latest
-  #   user: root
-  #   restart: unless-stopped
-  #   env_file:
-  #     - .env
-  #   volumes:
-  #     - ./monitoring/prometheus:/etc/prometheus
-  #     - ./data/prometheus:/prometheus
-  #   ports:
-  #     - 9090:9090
+  prometheus:
+    image: prom/prometheus:latest
+    user: root
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+      - ./data/prometheus:/prometheus
+    ports:
+      - 9090:9090
 
-  # json-server:
-  #   build:
-  #     context: ./serve
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - ./data/deployments:/app/data/deployments
-  #   ports:
-  #     - "3001:3001"
-  #   restart: unless-stopped
+  json-server:
+    build:
+      context: ./serve
+      dockerfile: Dockerfile
+    volumes:
+      - ./data/deployments:/app/data/deployments
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
 
-  # # blockscout services
-  # blockscout-redis-db:
-  #   extends:
-  #     file: ./blockscout/services/redis.yml
-  #     service: redis-db
-  #   profiles:
-  #     - blockscout
+  # blockscout services
+  blockscout-redis-db:
+    extends:
+      file: ./blockscout/services/redis.yml
+      service: redis-db
+    profiles:
+      - blockscout
 
-  # blockscout-db-init:
-  #   extends:
-  #     file: ./blockscout/services/db.yml
-  #     service: db-init
-  #   profiles:
-  #     - blockscout
-  #   depends_on:
-  #     op-geth:
-  #       condition: service_healthy
-  #     op-node:
-  #       condition: service_healthy
-  #     opstack-bridge-indexer-db:
-  #       condition: service_healthy
-  #     force-clone:
-  #       condition: service_completed_successfully
+  blockscout-db-init:
+    extends:
+      file: ./blockscout/services/db.yml
+      service: db-init
+    profiles:
+      - blockscout
+    depends_on:
+      op-geth:
+        condition: service_healthy
+      op-node:
+        condition: service_healthy
+      opstack-bridge-indexer-db:
+        condition: service_healthy
+      force-clone:
+        condition: service_completed_successfully
 
-  # blockscout-db:
-  #   depends_on:
-  #     blockscout-db-init:
-  #       condition: service_completed_successfully
-  #   extends:
-  #     file: ./blockscout/services/db.yml
-  #     service: db
-  #   profiles:
-  #     - blockscout
+  blockscout-db:
+    depends_on:
+      blockscout-db-init:
+        condition: service_completed_successfully
+    extends:
+      file: ./blockscout/services/db.yml
+      service: db
+    profiles:
+      - blockscout
 
-  # blockscout-backend:
-  #   depends_on:
-  #     - blockscout-db
-  #     - blockscout-redis-db
-  #   extends:
-  #     file: ./blockscout/services/backend.yml
-  #     service: backend
-  #   links:
-  #     - blockscout-db:database
-  #   environment:
-  #     ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545/
-  #     ETHEREUM_JSONRPC_TRACE_URL: http://host.docker.internal:8545/
-  #     ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545/
-  #     CHAIN_ID: "1337"
-  #   profiles:
-  #     - blockscout
+  blockscout-backend:
+    depends_on:
+      - blockscout-db
+      - blockscout-redis-db
+    extends:
+      file: ./blockscout/services/backend.yml
+      service: backend
+    links:
+      - blockscout-db:database
+    environment:
+      ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545/
+      ETHEREUM_JSONRPC_TRACE_URL: http://host.docker.internal:8545/
+      ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545/
+      CHAIN_ID: "1337"
+    profiles:
+      - blockscout
 
-  # blockscout-visualizer:
-  #   extends:
-  #     file: ./blockscout/services/visualizer.yml
-  #     service: visualizer
-  #   profiles:
-  #     - blockscout
+  blockscout-visualizer:
+    extends:
+      file: ./blockscout/services/visualizer.yml
+      service: visualizer
+    profiles:
+      - blockscout
 
-  # blockscout-sig-provider:
-  #   extends:
-  #     file: ./blockscout/services/sig-provider.yml
-  #     service: sig-provider
-  #   profiles:
-  #     - blockscout
+  blockscout-sig-provider:
+    extends:
+      file: ./blockscout/services/sig-provider.yml
+      service: sig-provider
+    profiles:
+      - blockscout
 
-  # blockscout-frontend:
-  #   depends_on:
-  #     - blockscout-backend
-  #   extends:
-  #     file: ./blockscout/services/frontend.yml
-  #     service: frontend
-  #   profiles:
-  #     - blockscout
+  blockscout-frontend:
+    depends_on:
+      - blockscout-backend
+    extends:
+      file: ./blockscout/services/frontend.yml
+      service: frontend
+    profiles:
+      - blockscout
 
-  # blockscout-stats-db-init:
-  #   extends:
-  #     file: ./blockscout/services/stats.yml
-  #     service: stats-db-init
-  #   profiles:
-  #     - blockscout
+  blockscout-stats-db-init:
+    extends:
+      file: ./blockscout/services/stats.yml
+      service: stats-db-init
+    profiles:
+      - blockscout
 
-  # blockscout-stats-db:
-  #   depends_on:
-  #     blockscout-stats-db-init:
-  #       condition: service_completed_successfully
-  #   extends:
-  #     file: ./blockscout/services/stats.yml
-  #     service: stats-db
-  #   profiles:
-  #     - blockscout
+  blockscout-stats-db:
+    depends_on:
+      blockscout-stats-db-init:
+        condition: service_completed_successfully
+    extends:
+      file: ./blockscout/services/stats.yml
+      service: stats-db
+    profiles:
+      - blockscout
 
-  # blockscout-stats:
-  #   depends_on:
-  #     - blockscout-stats-db
-  #     - blockscout-backend
-  #   extends:
-  #     file: ./blockscout/services/stats.yml
-  #     service: stats
-  #   profiles:
-  #     - blockscout
+  blockscout-stats:
+    depends_on:
+      - blockscout-stats-db
+      - blockscout-backend
+    extends:
+      file: ./blockscout/services/stats.yml
+      service: stats
+    profiles:
+      - blockscout
 
-  # blockscout-proxy:
-  #   depends_on:
-  #     - blockscout-backend
-  #     - blockscout-frontend
-  #     - blockscout-stats
-  #   extends:
-  #     file: ./blockscout/services/nginx.yml
-  #     service: proxy
-  #   profiles:
-  #     - blockscout
+  blockscout-proxy:
+    depends_on:
+      - blockscout-backend
+      - blockscout-frontend
+      - blockscout-stats
+    extends:
+      file: ./blockscout/services/nginx.yml
+      service: proxy
+    profiles:
+      - blockscout
 
-  # # bridge
-  # opstack-bridge-indexer-db:
-  #   image: postgres:13
-  #   restart: unless-stopped
-  #   env_file:
-  #     - indexer.env
-  #   volumes:
-  #     - ./data/bridge-indexer-db-data:/var/lib/postgresql/data
-  #     # init schema
-  #     - ./bridge/indexer/database/init.sql:/docker-entrypoint-initdb.d/init.sql
-  #   ports:
-  #     - "7512:5432"
-  #   profiles:
-  #     - opstack-bridge
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
+  # bridge
+  opstack-bridge-indexer-db:
+    image: postgres:13
+    restart: unless-stopped
+    env_file:
+      - indexer.env
+    volumes:
+      - ./data/bridge-indexer-db-data:/var/lib/postgresql/data
+      # init schema
+      - ./bridge/indexer/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "7512:5432"
+    profiles:
+      - opstack-bridge
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # opstack-bridge-indexer-deposit:
-  #   depends_on:
-  #     op-geth:
-  #       condition: service_healthy
-  #     op-node:
-  #       condition: service_healthy
-  #     opstack-bridge-indexer-db:
-  #       condition: service_healthy
-  #     force-clone:
-  #       condition: service_completed_successfully
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.indexer
-  #   restart: unless-stopped
-  #   entrypoint:
-  #     ["sh", "-c", "./config-bridge.sh && npm run build && npm run deposit"]
-  #   stdin_open: true
-  #   tty: true
-  #   profiles:
-  #     - opstack-bridge
-  #   volumes:
-  #     - ./data/deployments:/app/data/deployments
+  opstack-bridge-indexer-deposit:
+    depends_on:
+      op-geth:
+        condition: service_healthy
+      op-node:
+        condition: service_healthy
+      opstack-bridge-indexer-db:
+        condition: service_healthy
+      force-clone:
+        condition: service_completed_successfully
+    build:
+      context: .
+      dockerfile: Dockerfile.indexer
+    restart: unless-stopped
+    entrypoint:
+      ["sh", "-c", "./config-bridge.sh && npm run build && npm run deposit"]
+    stdin_open: true
+    tty: true
+    profiles:
+      - opstack-bridge
+    volumes:
+      - ./data/deployments:/app/data/deployments
 
-  # opstack-bridge-indexer-withdrawal:
-  #   depends_on:
-  #     op-geth:
-  #       condition: service_healthy
-  #     op-node:
-  #       condition: service_healthy
-  #     opstack-bridge-indexer-db:
-  #       condition: service_healthy
-  #     force-clone:
-  #       condition: service_completed_successfully
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.indexer
-  #   restart: unless-stopped
-  #   entrypoint:
-  #     ["sh", "-c", "./config-bridge.sh && npm run build && npm run withdrawal"]
-  #   stdin_open: true
-  #   tty: true
-  #   profiles:
-  #     - opstack-bridge
-  #   volumes:
-  #     - ./data/deployments:/app/data/deployments
+  opstack-bridge-indexer-withdrawal:
+    depends_on:
+      op-geth:
+        condition: service_healthy
+      op-node:
+        condition: service_healthy
+      opstack-bridge-indexer-db:
+        condition: service_healthy
+      force-clone:
+        condition: service_completed_successfully
+    build:
+      context: .
+      dockerfile: Dockerfile.indexer
+    restart: unless-stopped
+    entrypoint:
+      ["sh", "-c", "./config-bridge.sh && npm run build && npm run withdrawal"]
+    stdin_open: true
+    tty: true
+    profiles:
+      - opstack-bridge
+    volumes:
+      - ./data/deployments:/app/data/deployments
 
-  # opstack-bridge-indexer-server:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.indexer
-  #   restart: unless-stopped
-  #   depends_on:
-  #     op-geth:
-  #       condition: service_healthy
-  #     op-node:
-  #       condition: service_healthy
-  #     opstack-bridge-indexer-db:
-  #       condition: service_healthy
-  #     force-clone:
-  #       condition: service_completed_successfully
-  #   ports:
-  #     - "3043:3000"
-  #   entrypoint:
-  #     ["sh", "-c", "./config-bridge.sh && npm run build && npm run server"]
-  #   stdin_open: true
-  #   tty: true
-  #   profiles:
-  #     - opstack-bridge
-  #   volumes:
-  #     - ./data/deployments:/app/data/deployments
+  opstack-bridge-indexer-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.indexer
+    restart: unless-stopped
+    depends_on:
+      op-geth:
+        condition: service_healthy
+      op-node:
+        condition: service_healthy
+      opstack-bridge-indexer-db:
+        condition: service_healthy
+      force-clone:
+        condition: service_completed_successfully
+    ports:
+      - "3043:3000"
+    entrypoint:
+      ["sh", "-c", "./config-bridge.sh && npm run build && npm run server"]
+    stdin_open: true
+    tty: true
+    profiles:
+      - opstack-bridge
+    volumes:
+      - ./data/deployments:/app/data/deployments
 
-  # opstack-bridge-indexer-frontend:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.bridge-frontend
-  #   restart: unless-stopped
-  #   depends_on:
-  #     force-clone:
-  #       condition: service_completed_successfully
-  #   ports:
-  #     - "3044:4173"
-  #   stdin_open: true
-  #   tty: true
-  #   profiles:
-  #     - opstack-bridge
-  #   volumes:
-  #     - ./data/deployments:/app/data/deployments
-  #   entrypoint:
-  #     ["sh", "-c", "./config-bridge-ui.sh && npm run build && npm run preview"]
+  opstack-bridge-indexer-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.bridge-frontend
+    restart: unless-stopped
+    depends_on:
+      force-clone:
+        condition: service_completed_successfully
+    ports:
+      - "3044:4173"
+    stdin_open: true
+    tty: true
+    profiles:
+      - opstack-bridge
+    volumes:
+      - ./data/deployments:/app/data/deployments
+    entrypoint:
+      ["sh", "-c", "./config-bridge-ui.sh && npm run build && npm run preview"]
 # volumes:
 #   grafana_data:
 #   prometheus_data:
