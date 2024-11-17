@@ -322,14 +322,16 @@ services:
 
   # bridge
   opstack-bridge-indexer-db:
-    image: postgres:13
+    build:
+      context: .
+      dockerfile: Dockerfile.bridge-db
     restart: unless-stopped
     env_file:
       - indexer.env
     volumes:
       - ./data/bridge-indexer-db-data:/var/lib/postgresql/data
       # init schema
-      - ./bridge/indexer/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      # - ./bridge/indexer/database/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "7512:5432"
     profiles:
