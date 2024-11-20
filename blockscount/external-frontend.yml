@@ -19,6 +19,22 @@ services:
       file: ./services/db.yml
       service: db
 
+  backend:
+    depends_on:
+      - db
+      - redis-db
+    extends:
+      file: ./services/backend.yml
+      service: backend
+    links:
+      - db:database
+    environment:
+        ETHEREUM_JSONRPC_VARIANT: 'ganache'
+        ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545/
+        INDEXER_DISABLE_INTERNAL_TRANSACTIONS_FETCHER: 'true'
+        INDEXER_DISABLE_PENDING_TRANSACTIONS_FETCHER: 'true'
+        CHAIN_ID: '1337'
+
   visualizer:
     extends:
       file: ./services/visualizer.yml
@@ -28,11 +44,6 @@ services:
     extends:
       file: ./services/sig-provider.yml
       service: sig-provider
-
-  frontend:
-    extends:
-      file: ./services/frontend.yml
-      service: frontend
 
   stats-db-init:
     extends:
@@ -50,13 +61,22 @@ services:
   stats:
     depends_on:
       - stats-db
+      - backend
     extends:
       file: ./services/stats.yml
       service: stats
 
+  user-ops-indexer:
+    depends_on:
+      - db
+      - backend
+    extends:
+      file: ./services/user-ops-indexer.yml
+      service: user-ops-indexer
+
   proxy:
     depends_on:
-      - frontend
+      - backend
       - stats
     extends:
       file: ./services/nginx.yml

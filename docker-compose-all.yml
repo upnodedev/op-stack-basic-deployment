@@ -198,15 +198,15 @@ services:
     ports:
       - 9090:9090
 
-  json-server:
-    build:
-      context: ./serve
-      dockerfile: Dockerfile
-    volumes:
-      - ./data/deployments:/app/data/deployments
-    ports:
-      - "3001:3001"
-    restart: unless-stopped
+    # json-server:
+    #   build:
+    #     context: ./serve
+    #     dockerfile: Dockerfile
+    #   volumes:
+    #     - ./data/deployments:/app/data/deployments
+    #   ports:
+    #     - "3001:3001"
+    #   restart: unless-stopped
 
   # blockscout services
   blockscout-redis-db:
@@ -255,9 +255,11 @@ services:
       ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545/
       ETHEREUM_JSONRPC_TRACE_URL: http://host.docker.internal:8545/
       ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545/
-      CHAIN_ID: "1337"
+      CHAIN_ID: ${L2_CHAIN_ID}
     profiles:
       - blockscout
+    env_file:
+      - .env
 
   blockscout-visualizer:
     extends:
@@ -309,13 +311,23 @@ services:
     profiles:
       - blockscout
 
+  blockscout-user-ops-indexer:
+    depends_on:
+      - blockscout-db
+      - blockscout-backend
+    extends:
+      file: ./blockscout/services/user-ops-indexer.yml
+      service: user-ops-indexer
+    profiles:
+      - blockscout
+
   blockscout-proxy:
     depends_on:
       - blockscout-backend
       - blockscout-frontend
       - blockscout-stats
     extends:
-      file: ./blockscout/services/nginx.yml
+      file: ./blockscout/services/nginx-expose.yml
       service: proxy
     profiles:
       - blockscout
@@ -431,6 +443,8 @@ services:
       - ./data/deployments:/app/data/deployments
     entrypoint:
       ["sh", "-c", "./config-bridge-ui.sh && npm run build && npm run preview"]
+
+
 # volumes:
 #   grafana_data:
 #   prometheus_data:

@@ -4,7 +4,7 @@ services:
   stats-db-init:
     image: postgres:15
     volumes:
-      - ./data/blockscout-stats-db-data:/var/lib/postgresql/data
+      - ./stats-db-data:/var/lib/postgresql/data
     entrypoint:
       - sh
       - -c
@@ -26,7 +26,7 @@ services:
       - target: 5432
         published: 7433
     volumes:
-      - ./data/blockscout-stats-db-data:/var/lib/postgresql/data
+      - ./data/blockscout/stats-db-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U stats -d stats"]
       interval: 10s
@@ -35,7 +35,7 @@ services:
       start_period: 10s
 
   stats:
-    image: ghcr.io/blockscout/stats:${STATS_DOCKER_TAG:-latest}
+    image: ghcr.io/blockscout/stats:v2.2.3
     pull_policy: always
     platform: linux/amd64
     restart: always
@@ -45,7 +45,7 @@ services:
     env_file:
       -  ../envs/common-stats.env
     environment:
-      - STATS__DB_URL=postgres://stats:n0uejXPl61ci6ldCuE2gQU5Y@stats-db:5432/stats
+      - STATS__DB_URL=${STATS__DB_URL:-postgres://stats:n0uejXPl61ci6ldCuE2gQU5Y@stats-db:5432/stats}
       - STATS__BLOCKSCOUT_DB_URL=${STATS__BLOCKSCOUT_DB_URL:-postgresql://blockscout:ceWb1MeLBEeOIfk65gU8EjF8@db:5432/blockscout}
-      - STATS__CREATE_DATABASE=true
-      - STATS__RUN_MIGRATIONS=true
+      - STATS__CREATE_DATABASE=${STATS__CREATE_DATABASE:-true}
+      - STATS__RUN_MIGRATIONS=${STATS__RUN_MIGRATIONS:-true}

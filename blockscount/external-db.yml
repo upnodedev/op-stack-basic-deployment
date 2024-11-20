@@ -6,34 +6,14 @@ services:
       file: ./services/redis.yml
       service: redis-db
 
-  db-init:
-    extends:
-      file: ./services/db.yml
-      service: db-init
-
-  db:
-    depends_on:
-      db-init:
-        condition: service_completed_successfully
-    extends:
-      file: ./services/db.yml
-      service: db
-
   backend:
     depends_on:
-      - db
       - redis-db
     extends:
       file: ./services/backend.yml
       service: backend
-    links:
-      - db:database
     environment:
-        ETHEREUM_JSONRPC_VARIANT: 'ganache'
-        ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545/
-        INDEXER_DISABLE_INTERNAL_TRANSACTIONS_FETCHER: 'true'
-        INDEXER_DISABLE_PENDING_TRANSACTIONS_FETCHER: 'true'
-        CHAIN_ID: '1337'
+        ETHEREUM_JSONRPC_VARIANT: 'geth'
 
   visualizer:
     extends:
@@ -51,9 +31,6 @@ services:
     extends:
       file: ./services/frontend.yml
       service: frontend
-    environment:
-      NEXT_PUBLIC_NETWORK_ID: '1337'
-      NEXT_PUBLIC_NETWORK_RPC_URL: http://host.docker.internal:8545/
 
   stats-db-init:
     extends:
@@ -75,6 +52,13 @@ services:
     extends:
       file: ./services/stats.yml
       service: stats
+
+  user-ops-indexer:
+    depends_on:
+      - backend
+    extends:
+      file: ./services/user-ops-indexer.yml
+      service: user-ops-indexer
 
   proxy:
     depends_on:

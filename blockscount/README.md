@@ -10,6 +10,8 @@ Runs Blockscout locally in Docker containers with [docker-compose](https://githu
 
 ## Building Docker containers from source
 
+**Note**: in all below examples, you can use `docker compose` instead of `docker-compose`, if compose v2 plugin is installed in Docker.
+
 ```bash
 cd ./docker-compose
 docker-compose up --build
@@ -25,19 +27,18 @@ This command uses `docker-compose.yml` by-default, which builds the backend of t
 - Nginx proxy to bind backend, frontend and microservices.
 - Blockscout explorer at http://localhost.
 
-and 4 containers for microservices (written in Rust):
+and 5 containers for microservices (written in Rust):
 
 - [Stats](https://github.com/blockscout/blockscout-rs/tree/main/stats) service with a separate Postgres 14 DB.
 - [Sol2UML visualizer](https://github.com/blockscout/blockscout-rs/tree/main/visualizer) service.
 - [Sig-provider](https://github.com/blockscout/blockscout-rs/tree/main/sig-provider) service.
+- [User-ops-indexer](https://github.com/blockscout/blockscout-rs/tree/main/user-ops-indexer) service.
 
 **Note for Linux users**: Linux users need to run the local node on http://0.0.0.0/ rather than http://127.0.0.1/
 
 ## Configs for different Ethereum clients
 
 The repo contains built-in configs for different JSON RPC clients without need to build the image.
-
-**Note**: in all below examples, you can use `docker compose` instead of `docker-compose`, if compose v2 plugin is installed in Docker.
 
 | __JSON RPC Client__    | __Docker compose launch command__ |
 | -------- | ------- |
@@ -52,6 +53,7 @@ The repo contains built-in configs for different JSON RPC clients without need t
 - Running explorer with external backend: `docker-compose -f external-backend.yml up -d`
 - Running explorer with external frontend: `docker-compose -f external-frontend.yml up -d`
 - Running all microservices: `docker-compose -f microservices.yml up -d`
+- Running only explorer without microservices: `docker-compose -f no-services.yml up -d`
 
 All of the configs assume the Ethereum JSON RPC is running at http://localhost:8545.
 
@@ -63,6 +65,7 @@ You can adjust BlockScout environment variables:
 - for frontend in `./envs/common-frontend.env`
 - for stats service in `./envs/common-stats.env`
 - for visualizer in `./envs/common-visualizer.env`
+- for user-ops-indexer in `./envs/common-user-ops-indexer.env`
 
 Descriptions of the ENVs are available
 

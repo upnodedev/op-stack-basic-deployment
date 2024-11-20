@@ -29,7 +29,8 @@ services:
     links:
       - db:database
     environment:
-        ETHEREUM_JSONRPC_VARIANT: 'erigon'
+        ETHEREUM_JSONRPC_VARIANT: 'geth'
+        BLOCK_TRANSFORMER: 'clique'
 
   visualizer:
     extends:
@@ -68,6 +69,14 @@ services:
     extends:
       file: ./services/stats.yml
       service: stats
+
+  user-ops-indexer:
+    depends_on:
+      - db
+      - backend
+    extends:
+      file: ./services/user-ops-indexer.yml
+      service: user-ops-indexer
 
   proxy:
     depends_on:

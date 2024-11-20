@@ -1,0 +1,25 @@
+version: '3.9'
+
+services:
+  proxy:
+    image: nginx
+    container_name: proxy
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    volumes:
+      - "../proxy:/etc/nginx/templates"
+    environment:
+      BACK_PROXY_PASS: ${BACK_PROXY_PASS:-http://blockscout-backend:4000}
+      FRONT_PROXY_PASS: ${FRONT_PROXY_PASS:-http://blockscout-frontend:3000}
+      STATS_PROXY_PASS: ${STATS_PROXY_PASS:-http://blockscout-stats:8050/}
+      VISUALIZER_PROXY_PASS: ${VISUALIZER_PROXY_PASS:-http://blockscout-visualizer:8050/}
+    ports:
+      # frontend
+      - target: 80
+        published: 4240
+      # stats
+      - target: 8080
+        published: 4241
+      # visualizer
+      - target: 8081
+        published: 4242
