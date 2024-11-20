@@ -283,6 +283,8 @@ services:
       service: frontend
     profiles:
       - blockscout
+    env_file:
+      - blockscout-fe.env
 
   blockscout-stats-db-init:
     extends:
