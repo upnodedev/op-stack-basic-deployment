@@ -11,8 +11,8 @@ services:
     environment:
       BACK_PROXY_PASS: ${BACK_PROXY_PASS:-http://backend:4000}
       FRONT_PROXY_PASS: ${FRONT_PROXY_PASS:-http://frontend:3000}
-      APP_HOST: ${APP_HOST:-localhost}
-      APP_PROTOCOL: ${APP_PROTOCOL:-http}
+      APP_BLOCKSCOUT_HOST: ${APP_BLOCKSCOUT_HOST:-localhost}
+      APP_BLOCKSCOUT_PROTOCAL: ${APP_BLOCKSCOUT_PROTOCAL:-http}
     ports:
       # frontend
       - target: 80
