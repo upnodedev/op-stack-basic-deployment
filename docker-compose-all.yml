@@ -15,8 +15,6 @@ services:
     env_file:
       - .env
       # - paths.env
-    profiles:
-      - default
 
   celestia-da:
     user: root
@@ -90,8 +88,6 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
-    profiles:
-      - default
 
   op-node:
     build:
@@ -123,8 +119,6 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
-    profiles:
-      - default
 
   op-batcher:
     build:
