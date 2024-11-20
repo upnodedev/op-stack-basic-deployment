@@ -176,6 +176,7 @@ services:
   grafana:
     image: grafana/grafana:11.1.0
     user: root
+    privileged: true
     restart: unless-stopped
     env_file:
       - grafana.env
@@ -188,6 +189,7 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
+    privileged: true
     user: root
     restart: unless-stopped
     env_file:
