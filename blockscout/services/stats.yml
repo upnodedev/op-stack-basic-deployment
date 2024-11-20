@@ -4,7 +4,7 @@ services:
   stats-db-init:
     image: postgres:15
     volumes:
-      - ./stats-db-data:/var/lib/postgresql/data
+      - ./data/blockscout/stats-db-data:/var/lib/postgresql/data
     entrypoint:
       - sh
       - -c

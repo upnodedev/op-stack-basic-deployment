@@ -11,6 +11,7 @@ blockscout/services/blockscout-db-data
 blockscout/services/logs
 blockscout/services/redis-data
 blockscout/services/stats-db-data
+blockscout/services/data
 
 blockscout/services/data/blockscout-db-data
 blockscout/services/data/blockscout-logs

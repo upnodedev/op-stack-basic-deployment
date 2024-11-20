@@ -6,7 +6,6 @@ services:
     pull_policy: always
     restart: always
     stop_grace_period: 5m
-    platform: linux/amd64
     container_name: 'backend'
     command: sh -c "bin/blockscout eval \"Elixir.Explorer.ReleaseTasks.create_and_migrate()\" && bin/blockscout start"
     extra_hosts:
@@ -14,4 +13,4 @@ services:
     env_file:
       -  ../envs/common-blockscout.env
     volumes:
-      - ./data/blockscout/logs:/app/logs/
+      - ./data/blockscout/logs/:/app/logs/
