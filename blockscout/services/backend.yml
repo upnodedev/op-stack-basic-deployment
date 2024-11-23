@@ -13,4 +13,4 @@ services:
     env_file:
       -  ../envs/common-blockscout.env
     volumes:
-      - ./data/blockscout/logs/:/app/logs/
+      - ${PWD}/data/blockscout/logs/:/app/logs/
