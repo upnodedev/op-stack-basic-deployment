@@ -6,4 +6,4 @@ services:
     container_name: redis-db
     command: redis-server
     volumes:
-      - ${PWD}/data/blockscout/redis-data:/data
+      - ${CURRENT_PATH}/data/blockscout/redis-data:/data

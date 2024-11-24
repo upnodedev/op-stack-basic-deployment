@@ -6,12 +6,12 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./data/optimism:/app/data/optimism
-      - ./data/op-geth:/app/data/op-geth
-      - ./data/deployments:/app/data/deployments
-      - ./data/configurations:/app/data/configurations
-      - ./data/bin:/app/data/bin
-      - ./data/datadir:/app/data/datadir
+      - ${CURRENT_PATH}/data/optimism:/app/data/optimism
+      - ${CURRENT_PATH}/data/op-geth:/app/data/op-geth
+      - ${CURRENT_PATH}/data/deployments:/app/data/deployments
+      - ${CURRENT_PATH}/data/configurations:/app/data/configurations
+      - ${CURRENT_PATH}/data/bin:/app/data/bin
+      - ${CURRENT_PATH}/data/datadir:/app/data/datadir
     env_file:
       - .env
       # - paths.env
@@ -22,7 +22,7 @@ services:
       context: .
       dockerfile: Dockerfile.celestia
     volumes:
-      - ./data/celestia:/home/celestia/${TARGET_FOLDER_NAME}/
+      - ${CURRENT_PATH}/data/celestia:/home/celestia/${TARGET_FOLDER_NAME}/
     command: ["/bin/bash", "-c", "/app/celestia-da.sh"]
     env_file:
       - .env
@@ -61,9 +61,9 @@ services:
       args:
         ENTRYPOINT_SCRIPT: op-geth.sh
     volumes:
-      - ./data/bin:/app/data/bin
-      - ./data/datadir:/app/data/datadir
-      - ./data/configurations:/app/data/configurations
+      - ${CURRENT_PATH}/data/bin:/app/data/bin
+      - ${CURRENT_PATH}/data/datadir:/app/data/datadir
+      - ${CURRENT_PATH}/data/configurations:/app/data/configurations
     depends_on:
       force-clone:
         condition: service_completed_successfully
@@ -96,8 +96,8 @@ services:
       args:
         ENTRYPOINT_SCRIPT: op-node.sh
     volumes:
-      - ./data/bin:/app/data/bin
-      - ./data/configurations:/app/data/configurations
+      - ${CURRENT_PATH}/data/bin:/app/data/bin
+      - ${CURRENT_PATH}/data/configurations:/app/data/configurations
     depends_on:
       op-geth:
         condition: service_healthy
@@ -127,7 +127,7 @@ services:
       args:
         ENTRYPOINT_SCRIPT: op-batcher.sh
     volumes:
-      - ./data/bin:/app/data/bin
+      - ${CURRENT_PATH}/data/bin:/app/data/bin
     depends_on:
       op-geth:
         condition: service_healthy
@@ -153,8 +153,8 @@ services:
       args:
         ENTRYPOINT_SCRIPT: op-proposer.sh
     volumes:
-      - ./data/bin:/app/data/bin
-      - ./data/deployments:/app/data/deployments
+      - ${CURRENT_PATH}/data/bin:/app/data/bin
+      - ${CURRENT_PATH}/data/deployments:/app/data/deployments
     depends_on:
       op-geth:
         condition: service_healthy
@@ -174,29 +174,33 @@ services:
     profiles: ["sequencer"]
 
   grafana:
-    image: grafana/grafana:11.1.0
+    build:
+      context: .
+      dockerfile: Dockerfile.grafana
     user: root
     privileged: true
     restart: unless-stopped
     env_file:
       - grafana.env
     volumes:
-      - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/:ro
-      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
-      - ./data/grafana:/var/lib/grafana
+      # - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/:ro
+      # - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+      - ${CURRENT_PATH}/data/grafana:/var/lib/grafana
     ports:
       - 3000:3000
 
   prometheus:
-    image: prom/prometheus:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.prometheus
     privileged: true
     user: root
     restart: unless-stopped
     env_file:
       - .env
     volumes:
-      - ./monitoring/prometheus:/etc/prometheus
-      - ./data/prometheus:/prometheus
+      # - ./monitoring/prometheus:/etc/prometheus
+      - ${CURRENT_PATH}/data/prometheus:/prometheus
     ports:
       - 9090:9090
 
@@ -205,7 +209,7 @@ services:
     #     context: ./serve
     #     dockerfile: Dockerfile
     #   volumes:
-    #     - ./data/deployments:/app/data/deployments
+    #     - ${CURRENT_PATH}/data/deployments:/app/data/deployments
     #   ports:
     #     - "3001:3001"
     #   restart: unless-stopped
@@ -219,7 +223,7 @@ services:
     env_file:
       - indexer.env
     volumes:
-      - ./data/bridge-indexer-db-data:/var/lib/postgresql/data
+      - ${CURRENT_PATH}/data/bridge-indexer-db-data:/var/lib/postgresql/data
       # init schema
       # - ./bridge/indexer/database/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
@@ -253,7 +257,7 @@ services:
     profiles:
       - opstack-bridge
     volumes:
-      - ./data/deployments:/app/data/deployments
+      - ${CURRENT_PATH}/data/deployments:/app/data/deployments
 
   opstack-bridge-indexer-withdrawal:
     depends_on:
@@ -276,7 +280,7 @@ services:
     profiles:
       - opstack-bridge
     volumes:
-      - ./data/deployments:/app/data/deployments
+      - ${CURRENT_PATH}/data/deployments:/app/data/deployments
 
   opstack-bridge-indexer-server:
     build:
@@ -301,7 +305,7 @@ services:
     profiles:
       - opstack-bridge
     volumes:
-      - ./data/deployments:/app/data/deployments
+      - ${CURRENT_PATH}/data/deployments:/app/data/deployments
 
   opstack-bridge-indexer-frontend:
     build:
@@ -318,7 +322,7 @@ services:
     profiles:
       - opstack-bridge
     volumes:
-      - ./data/deployments:/app/data/deployments
+      - ${CURRENT_PATH}/data/deployments:/app/data/deployments
     entrypoint:
       ["sh", "-c", "./config-bridge-ui.sh && npm run build && npm run preview"]
 
@@ -458,8 +462,3 @@ services:
       service: proxy
     profiles:
       - blockscout
-
-
-# volumes:
-#   grafana_data:
-#   prometheus_data:

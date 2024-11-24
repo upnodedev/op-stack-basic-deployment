@@ -1,0 +1,4 @@
+FROM prom/prometheus:latest
+
+# Copy the configuration file
+COPY /monitoring/prometheus /etc/prometheus/

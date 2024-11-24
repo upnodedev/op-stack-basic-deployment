@@ -1,0 +1,5 @@
+FROM grafana/grafana:11.1.0
+
+# Copy the configuration file
+COPY /monitoring/grafana/provisioning/ /etc/grafana/provisioning/
+COPY /monitoring/grafana/dashboards/ /var/lib/grafana/dashboards/
