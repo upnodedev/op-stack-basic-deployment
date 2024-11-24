@@ -1,0 +1,126 @@
+version: "3.9"
+
+services:
+  # blockscout
+  redis-db:
+    extends:
+      file: ./blockscout/services/redis.yml
+      service: redis-db
+    profiles:
+      - blockscout
+
+  db-init:
+    extends:
+      file: ./blockscout/services/db.yml
+      service: db-init
+    profiles:
+      - blockscout
+
+  db:
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    extends:
+      file: ./blockscout/services/db.yml
+      service: db
+    profiles:
+      - blockscout
+
+  backend:
+    depends_on:
+      - db
+      - redis-db
+    extends:
+      file: ./blockscout/services/backend.yml
+      service: backend
+    links:
+      - db:database
+    env_file:
+      - .env
+    environment:
+        ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545/
+        ETHEREUM_JSONRPC_TRACE_URL: http://host.docker.internal:8545/
+        ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545/
+        CHAIN_ID: '${L2_CHAIN_ID}'
+    profiles:
+      - blockscout
+
+  visualizer:
+    extends:
+      file: ./blockscout/services/visualizer.yml
+      service: visualizer
+    profiles:
+      - blockscout
+
+  sig-provider:
+    extends:
+      file: ./blockscout/services/sig-provider.yml
+      service: sig-provider
+    profiles:
+      - blockscout
+
+  frontend:
+    depends_on:
+      - backend
+    extends:
+      file: ./blockscout/services/frontend.yml
+      service: frontend
+    env_file:
+      - blockscout.env
+    profiles:
+      - blockscout
+
+  stats-db-init:
+    extends:
+      file: ./blockscout/services/stats.yml
+      service: stats-db-init
+    profiles:
+      - blockscout
+
+  stats-db:
+    depends_on:
+      stats-db-init:
+        condition: service_completed_successfully
+    extends:
+      file: ./blockscout/services/stats.yml
+      service: stats-db
+    profiles:
+      - blockscout
+
+  stats:
+    depends_on:
+      - stats-db
+      - backend
+    extends:
+      file: ./blockscout/services/stats.yml
+      service: stats
+    profiles:
+      - blockscout
+
+  user-ops-indexer:
+    depends_on:
+      - db
+      - backend
+    extends:
+      file: ./blockscout/services/user-ops-indexer.yml
+      service: user-ops-indexer
+    profiles:
+      - blockscout
+
+  proxy:
+    depends_on:
+      - backend
+      - frontend
+      - stats
+    env_file:
+      - .env
+    extends:
+      file: ./blockscout/services/nginx-expose.yml
+      service: proxy
+    profiles:
+      - blockscout
+
+
+# volumes:
+#   grafana_data:
+#   prometheus_data:
