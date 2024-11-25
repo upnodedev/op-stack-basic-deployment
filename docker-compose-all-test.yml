@@ -108,6 +108,9 @@ services:
       - blockscout
 
   proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile.proxy-blockscout
     depends_on:
       - backend
       - frontend

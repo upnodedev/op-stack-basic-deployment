@@ -1,0 +1,4 @@
+FROM nginx
+
+# Copy the configuration file
+COPY /blockscout/proxy /etc/nginx/templates
