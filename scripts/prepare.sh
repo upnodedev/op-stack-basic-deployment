@@ -6,6 +6,13 @@ set -e
 # Clone repositories if necessary
 /app/clone-repos.sh
 
+# delete if deploy-override.json exists
+rm -f "$CONFIG_PATH"/deploy-override.json
+if [ -f deploy-override.json ]; then
+  echo "deploy-override.json exists"
+  cp deploy-override.json "$CONFIG_PATH"/deploy-override.json
+fi
+
 # Check and build binaries if at least one doesn't exist
 if [ ! -f "$BIN_DIR/op-node" ] || [ ! -f "$BIN_DIR/op-batcher" ] || [ ! -f "$BIN_DIR/op-proposer" ] || [ ! -f "$BIN_DIR/geth" ]; then
   # Build op-node, op-batcher and op-proposer
