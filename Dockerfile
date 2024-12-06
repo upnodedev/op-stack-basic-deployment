@@ -50,6 +50,9 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 WORKDIR /app
 
 # Copy the scripts
+
+# COPY deploy-override.json if exists
+COPY deploy-override.json /app/deploy-override.json
 COPY scripts/clone-repos.sh /app/clone-repos.sh
 COPY scripts/utils.sh /app/utils.sh
 COPY scripts/prepare.sh /app/prepare.sh
