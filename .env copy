@@ -1,0 +1,269 @@
+##################################################
+#              Global Configuration             #
+##################################################
+
+# SKIP_DEPLOYMENT_CHECK: 'true' skips checking all deployment components, only checks genesis.json and rollup.json; 'false' checks all components. Default: false.
+SKIP_DEPLOYMENT_CHECK=false
+
+# SEQUENCER_MODE: 'true' enables sequencer, runs op-batcher/op-proposer; 'false' disables them. Default: true.
+SEQUENCER_MODE=true
+
+# CELESTIA_MODE: 'true' runs celestia-da service; 'false' disables it. Default: true.
+CELESTIA_MODE=false
+
+##################################################
+#              Cloning Configuration             #
+##################################################
+
+# Repository configuration for optimism and op-geth
+# If not set, default to the official optimism implementation
+
+OPTIMISM_REPO_URL=https://github.com/ethereum-optimism/optimism.git
+OPTIMISM_BRANCH_OR_COMMIT=v1.9.0
+
+OP_GETH_REPO_URL=https://github.com/ethereum-optimism/op-geth.git
+OP_GETH_BRANCH_OR_COMMIT=v1.101315.3
+
+##################################################
+#                 Accounts Info                  #
+##################################################
+
+# Admin account
+ADMIN_PRIVATE_KEY=0xe7200279dabfc7aebb57ffa0f3c59244bb06ca920b804262019ad5a1dff642a1
+
+# Batcher account
+BATCHER_PRIVATE_KEY=0xe7200279dabfc7aebb57ffa0f3c59244bb06ca920b804262019ad5a1dff642a1
+
+# Proposer account
+PROPOSER_PRIVATE_KEY=0xe7200279dabfc7aebb57ffa0f3c59244bb06ca920b804262019ad5a1dff642a1
+
+# Sequencer account
+SEQUENCER_PRIVATE_KEY=0xe7200279dabfc7aebb57ffa0f3c59244bb06ca920b804262019ad5a1dff642a1
+
+# Contract deployer account
+DEPLOYER_PRIVATE_KEY=$ADMIN_PRIVATE_KEY
+
+##################################################
+#                 L1 RPC Info                    #
+##################################################
+
+# The kind of RPC provider, used to inform optimal transactions receipts
+# fetching. Valid options: alchemy, quicknode, infura, parity, nethermind,
+# debug_geth, erigon, basic, any.
+L1_RPC_KIND=quicknode
+
+# RPC URL for the L1 network to interact with
+L1_RPC_URL=https://quick-serene-pine.ethereum-holesky.quiknode.pro/a5c5ac0df0f0656d58699a732b567738f0ef6542
+
+L1_BLOCK_TIME=12
+
+##################################################
+#               Deployment Info                  #
+##################################################
+
+# The chain identifier for the L2 network
+L2_CHAIN_ID=43333
+
+L2_BLOCK_TIME=2
+
+##################################################
+#              celestia-da Configuration         #
+##################################################
+
+# These variables are required if the celestia profile is applied
+
+# Skip celestia da light node sync check
+SKIP_HEALTHCHECK=false
+
+# Necessary because it's used in the build of the celestia-da service and in celestia.env/paths.env
+TARGET_FOLDER_NAME=.celestia-light-mocha-4
+# Necessary because it's used in the build of the celestia-da service and in celestia.env
+P2P_NETWORK=mocha
+
+# Used in celestia.env/paths.env
+CELESTIA_RPC=rpc-mocha.pops.one
+CELESTIA_RPC_PORT=26657
+CELESTIA_GRPC_PORT=9090
+CELESTIA_NAMESPACE=
+CELESTIA_KEYRING_MNEMONIC=
+CELESTIA_ACCNAME=acc
+CELESTIA_NODE_TYPE=light
+
+##################################################
+#              op-node Configuration             #
+##################################################
+
+# Used in opnode.env
+P2P_AGENT=
+P2P_ADVERTISE_IP=
+
+##################################################
+#              op-geth Configuration             #
+##################################################
+
+# Used in opgeth.env
+MINER_ETHERBASE_ADDRESS=
+UNLOCK_ADDRESS=
+
+# If GETH_PASSWORD is set in opgeth.env
+PASSWORD=pwd
+
+##################################################
+#              op-proposer Configuration         #
+##################################################
+
+# Used in opproposer.env
+L2OO_ADDRESS=
+
+##################################################
+#               Contract Deployment              #
+##################################################
+
+# Optional Tenderly details for simulation link during deployment
+TENDERLY_PROJECT=
+TENDERLY_USERNAME=
+
+# Optional Etherscan API key for contract verification
+ETHERSCAN_API_KEY=
+
+
+##################################################
+#               Path Variables                   #
+##################################################
+
+CONFIG_PATH=/app/data/configurations
+DATADIR_DIR=/app/data/datadir
+DEPLOYMENT_DIR=/app/data/deployments
+OPTIMISM_DIR=/app/data/optimism
+OP_GETH_DIR=/app/data/op-geth
+BIN_DIR=/app/data/bin
+CELESTIA_KEYRING_PATH=/home/celestia/$TARGET_FOLDER_NAME/keys/keyring-test/$CELESTIA_ACCNAME.info
+CELESTIA_NODE_STORE=/home/celestia/$TARGET_FOLDER_NAME
+CELESTIA_NODE_STORE_CONFIG_PATH=$CELESTIA_NODE_STORE/config.toml
+
+##################################################
+#              op-geth Flags                     #
+##################################################
+
+GETH_DATADIR=$DATADIR_DIR
+GETH_HTTP=true
+GETH_HTTP_CORSDOMAIN="*"
+GETH_HTTP_VHOSTS="*"
+GETH_HTTP_ADDR=0.0.0.0
+GETH_HTTP_API=web3,debug,eth,txpool,net,engine
+GETH_WS=true
+GETH_WS_ADDR=0.0.0.0
+GETH_WS_PORT=8545
+GETH_WS_ORIGINS="*"
+GETH_WS_API=debug,eth,txpool,net,engine
+GETH_PORT=30333
+GETH_DISCOVERY_PORT=30333
+GETH_SYNCMODE=full
+GETH_GCMODE=archive
+GETH_NODISCOVER=false
+GETH_MAXPEERS=200
+GETH_NETWORKID=$L2_CHAIN_ID
+GETH_AUTHRPC_VHOSTS="*"
+GETH_AUTHRPC_ADDR=0.0.0.0
+GETH_AUTHRPC_PORT=8551
+GETH_AUTHRPC_JWTSECRET=$CONFIG_PATH/jwt.txt
+GETH_ROLLUP_DISABLETXPOOLGOSSIP=true
+GETH_RPC_ALLOW_UNPROTECTED_TXS=true
+GETH_PASSWORD=$DATADIR_DIR/password
+
+GETH_METRICS=true
+GETH_METRICS_ADDR=0.0.0.0
+GETH_METRICS_PORT=7303
+
+##################################################
+#              op-batcher Flags                  #
+##################################################
+
+OP_BATCHER_L2_ETH_RPC=http://op-geth:8545
+OP_BATCHER_ROLLUP_RPC=http://op-node:8547
+OP_BATCHER_POLL_INTERVAL=0.5s
+OP_BATCHER_SUB_SAFETY_MARGIN=6
+OP_BATCHER_NUM_CONFIRMATIONS=1
+OP_BATCHER_SAFE_ABORT_NONCE_TOO_LOW_COUNT=3
+OP_BATCHER_RESUBMISSION_TIMEOUT=30s
+OP_BATCHER_RPC_ADDR=0.0.0.0
+OP_BATCHER_RPC_PORT=8548
+OP_BATCHER_MAX_CHANNEL_DURATION=300
+OP_BATCHER_L1_ETH_RPC=$L1_RPC_URL
+OP_BATCHER_PRIVATE_KEY=$BATCHER_PRIVATE_KEY
+OP_BATCHER_DA_RPC=celestia-da:26650
+OP_BATCHER_BATCH_TYPE=${OP_BATCHER_BATCH_TYPE:-1}
+OP_BATCHER_DATA_AVAILABILITY_TYPE=calldata
+
+OP_BATCHER_METRICS_ENABLED=true
+OP_BATCHER_METRICS_ADDR=0.0.0.0
+OP_BATCHER_METRICS_PORT=7301
+
+##################################################
+#              op-node Flags                     #
+##################################################
+
+#OP_NODE_SYNCMODE=execution-layer
+OP_NODE_L2_ENGINE_RPC=ws://op-geth:8551
+OP_NODE_L2_ENGINE_AUTH=$CONFIG_PATH/jwt.txt
+OP_NODE_L1_EPOCH_POLL_INTERVAL=2s
+OP_NODE_L1_HTTP_POLL_INTERVAL=2s
+OP_NODE_SEQUENCER_ENABLED=$SEQUENCER_MODE
+OP_NODE_SEQUENCER_L1_CONFS=3
+OP_NODE_VERIFIER_L1_CONFS=3
+OP_NODE_ROLLUP_CONFIG=$CONFIG_PATH/rollup.json
+OP_NODE_RPC_ADDR=0.0.0.0
+OP_NODE_RPC_PORT=8547
+OP_NODE_RPC_ENABLE_ADMIN=false
+OP_NODE_P2P_SEQUENCER_KEY=$SEQUENCER_PRIVATE_KEY
+OP_NODE_L1_ETH_RPC=$L1_RPC_URL
+OP_NODE_L1_RPC_KIND=$L1_RPC_KIND
+OP_NODE_L1_TRUST_RPC=true
+OP_NODE_L1_BEACON_IGNORE=true
+OP_NODE_P2P_AGENT=$P2P_AGENT
+OP_NODE_P2P_LISTEN_IP=0.0.0.0
+OP_NODE_P2P_LISTEN_TCP_PORT=9221
+OP_NODE_P2P_LISTEN_UDP_PORT=9221
+OP_NODE_P2P_ADVERTISE_IP=$P2P_ADVERTISE_IP
+OP_NODE_DA_RPC=celestia-da:26650
+
+OP_NODE_METRICS_ENABLED=true
+OP_NODE_METRICS_ADDR=0.0.0.0
+OP_NODE_METRICS_PORT=7300
+
+##################################################
+#              op-proposer Flags                 #
+##################################################
+
+OP_PROPOSER_ALLOW_NON_FINALIZED=true
+OP_PROPOSER_POLL_INTERVAL=12s
+OP_PROPOSER_RPC_PORT=8560
+OP_PROPOSER_ROLLUP_RPC=http://op-node:8547
+OP_PROPOSER_L2OO_ADDRESS=$L2OO_ADDRESS
+OP_PROPOSER_PRIVATE_KEY=$PROPOSER_PRIVATE_KEY
+OP_PROPOSER_L1_ETH_RPC=$L1_RPC_URL
+
+OP_PROPOSER_METRICS_ENABLED=true
+OP_PROPOSER_METRICS_ADDR=0.0.0.0
+OP_PROPOSER_METRICS_PORT=7302
+
+
+##################################################
+#               AWS Credentials                  #
+##################################################
+
+# AWS Secrets Manager ARN
+AWS_SECRET_ARN=
+
+# AWS Credentials
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=
+
+DOMAIN_NAME=localhost
+
+APP_BLOCKSCOUT_HOST=blockscout.localhost
+APP_BLOCKSCOUT_PROTOCAL=http
+
+
+

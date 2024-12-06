@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: force-clone
     volumes:
       - ${CURRENT_PATH}/data/optimism:/app/data/optimism
       - ${CURRENT_PATH}/data/op-geth:/app/data/op-geth
@@ -17,6 +18,7 @@ services:
       # - paths.env
 
   celestia-da:
+    container_name: celestia-da
     user: root
     build:
       context: .
@@ -55,6 +57,7 @@ services:
     profiles: ["celestia"]
 
   op-geth:
+    container_name: op-geth
     build:
       context: .
       dockerfile: Dockerfile.services
@@ -90,6 +93,7 @@ services:
     restart: unless-stopped
 
   op-node:
+    container_name: op-node
     build:
       context: .
       dockerfile: Dockerfile.services
@@ -121,6 +125,7 @@ services:
     restart: unless-stopped
 
   op-batcher:
+    container_name: op-batcher
     build:
       context: .
       dockerfile: Dockerfile.services
@@ -147,6 +152,7 @@ services:
     profiles: ["sequencer"]
 
   op-proposer:
+    container_name: op-proposer
     build:
       context: .
       dockerfile: Dockerfile.services
@@ -174,6 +180,7 @@ services:
     profiles: ["sequencer"]
 
   grafana:
+    container_name: grafana
     build:
       context: .
       dockerfile: Dockerfile.grafana
@@ -190,6 +197,7 @@ services:
       - 3000:3000
 
   prometheus:
+    container_name: prometheus
     build:
       context: .
       dockerfile: Dockerfile.prometheus
@@ -216,6 +224,7 @@ services:
 
   # bridge
   opstack-bridge-indexer-db:
+    container_name: bridge-indexer-db
     build:
       context: .
       dockerfile: Dockerfile.bridge-db
@@ -237,6 +246,7 @@ services:
       retries: 5
 
   opstack-bridge-indexer-deposit:
+    container_name: bridge-indexer-deposit
     depends_on:
       op-geth:
         condition: service_healthy
@@ -260,6 +270,7 @@ services:
       - ${CURRENT_PATH}/data/deployments:/app/data/deployments
 
   opstack-bridge-indexer-withdrawal:
+    container_name: bridge-indexer-withdrawal
     depends_on:
       op-geth:
         condition: service_healthy
@@ -283,6 +294,7 @@ services:
       - ${CURRENT_PATH}/data/deployments:/app/data/deployments
 
   opstack-bridge-indexer-server:
+    container_name: bridge-indexer-server
     build:
       context: .
       dockerfile: Dockerfile.indexer
@@ -308,6 +320,7 @@ services:
       - ${CURRENT_PATH}/data/deployments:/app/data/deployments
 
   opstack-bridge-indexer-frontend:
+    container_name: bridge-indexer-frontend
     build:
       context: .
       dockerfile: Dockerfile.bridge-frontend
@@ -328,6 +341,7 @@ services:
 
   # blockscout
   redis-db:
+    container_name: blockscout-redis-db
     extends:
       file: ./blockscout/services/redis.yml
       service: redis-db
@@ -335,6 +349,7 @@ services:
       - blockscout
 
   db-init:
+    container_name: blockscout-db-init
     extends:
       file: ./blockscout/services/db.yml
       service: db-init
@@ -351,6 +366,7 @@ services:
       - blockscout
 
   db:
+    container_name: blockscout-db
     depends_on:
       db-init:
         condition: service_completed_successfully
@@ -361,6 +377,7 @@ services:
       - blockscout
 
   backend:
+    container_name: blockscout-backend
     depends_on:
       - db
       - redis-db
@@ -380,6 +397,7 @@ services:
       - blockscout
 
   visualizer:
+    container_name: blockscout-visualizer
     extends:
       file: ./blockscout/services/visualizer.yml
       service: visualizer
@@ -387,6 +405,7 @@ services:
       - blockscout
 
   sig-provider:
+    container_name: blockscout-sig-provider
     extends:
       file: ./blockscout/services/sig-provider.yml
       service: sig-provider
@@ -394,6 +413,7 @@ services:
       - blockscout
 
   frontend:
+    container_name: blockscout-frontend
     depends_on:
       - backend
     extends:
@@ -405,6 +425,7 @@ services:
       - blockscout
 
   stats-db-init:
+    container_name: blockscout-stats-db-init
     extends:
       file: ./blockscout/services/stats.yml
       service: stats-db-init
@@ -421,6 +442,7 @@ services:
       - blockscout
 
   stats-db:
+    container_name: blockscout-stats-db
     depends_on:
       stats-db-init:
         condition: service_completed_successfully
@@ -431,6 +453,7 @@ services:
       - blockscout
 
   stats:
+    container_name: blockscout-stats
     depends_on:
       - stats-db
       - backend
@@ -441,6 +464,7 @@ services:
       - blockscout
 
   user-ops-indexer:
+    container_name: blockscout-user-ops-indexer
     depends_on:
       - db
       - backend
@@ -451,6 +475,7 @@ services:
       - blockscout
 
   proxy:
+    container_name: blockscout-proxy
     build:
       context: .
       dockerfile: Dockerfile.proxy-blockscout
