@@ -20,3 +20,11 @@ derive_and_check() {
     export "$addr_var_name"="$derived_address"
   fi
 }
+
+update_toml_value() {
+  local variable_name=$1
+  local new_value=$2
+  local file_name=$3
+
+  sed -i -e '/'"$variable_name"' =/ s/= .*/= '"$new_value"'/' "$file_name"
+}
