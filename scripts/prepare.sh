@@ -139,20 +139,17 @@ fi
 
 ## Extract artifact info
 ./bin/op-deployer inspect superchain-registry --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID"
-#./bin/op-deployer inspect l1 --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID" > "$DEPLOYER_WORKDIR"/l1-contracts.json # outputs all L1 contract addresses for an L2 chain
-#./bin/op-deployer inspect deploy-config --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID" # outputs the deploy config for an L2 chain
-#./bin/op-deployer inspect l2-semvers --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID" # outputs the semvers for all L2 chains
 
 # Copy the deployment files to the data volume
-cp "$DEPLOYER_WORKDIR"/* "$DEPLOYMENT_DIR"/
-#cp $DEPLOY_CONFIG_PATH "$CONFIG_PATH"/deploy-config.json
+cp "$DEPLOYER_WORKDIR"/genesis.json "$DEPLOYMENT_DIR"/
+cp "$DEPLOYER_WORKDIR"/rollup.json "$DEPLOYMENT_DIR"/
+cp "$DEPLOYER_WORKDIR"/deploy-config.json "$DEPLOYMENT_DIR"/
+cp "$DEPLOYER_WORKDIR"/superchain-registry.env "$DEPLOYMENT_DIR"/
+cp "$DEPLOYER_WORKDIR"/addresses.json  "$DEPLOYMENT_DIR"/
 cp $DEPLOYER_INTENT_FILE "$CONFIG_PATH"/intent.toml
 cp "$DEPLOYER_WORKDIR"/genesis.json "$CONFIG_PATH"/
 cp "$DEPLOYER_WORKDIR"/rollup.json "$CONFIG_PATH"/
 
-
-# Generating L2 Allocs
-#export CONTRACT_ADDRESSES_PATH=$DEPLOYMENT_DIR/artifact.json
 #export STATE_DUMP_PATH=$DEPLOYMENT_DIR/allocs.json
 
 #if [ -f "$STATE_DUMP_PATH" ]; then
@@ -160,25 +157,6 @@ cp "$DEPLOYER_WORKDIR"/rollup.json "$CONFIG_PATH"/
 #else
 #  forge script scripts/L2Genesis.s.sol:L2Genesis --chain-id "$L2_CHAIN_ID"  --sig 'runWithAllUpgrades()' --private-key "$DEPLOYER_PRIVATE_KEY" # OR runWithStateDump()
 #fi
-
-#export DEPLOY_CONFIG_PATH="$CONFIG_PATH"/deploy-config.json
-## Generate the L2 genesis files
-#cd "$OPTIMISM_DIR"/op-node
-#go run cmd/main.go genesis l2 \
-#  --deploy-config "$DEPLOY_CONFIG_PATH" \
-#  --l1-deployments "$CONTRACT_ADDRESSES_PATH" \
-#  --outfile.l2 genesis.json \
-#  --outfile.rollup rollup.json \
-#  --l1-rpc "$L1_RPC_URL" \
-#  --l2-allocs "$STATE_DUMP_PATH"
-#cp genesis.json "$CONFIG_PATH"/
-#cp rollup.json "$CONFIG_PATH"/
-
-# Generate the L2 genesis files
-#./bin/op-deployer inspect genesis --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID" > "$DEPLOYER_WORKDIR"/genesis.json
-#./bin/op-deployer inspect rollup --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID" > "$DEPLOYER_WORKDIR"/rollup.json
-#cp "$DEPLOYER_WORKDIR"/genesis.json "$CONFIG_PATH"/
-#cp "$DEPLOYER_WORKDIR"/rollup.json "$CONFIG_PATH"/
 
 # Reset repository for cleanup
 cd "$OPTIMISM_DIR"
