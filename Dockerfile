@@ -42,7 +42,7 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # Install Foundry
 RUN curl -L https://foundry.paradigm.xyz | bash
 ENV PATH="/root/.foundry/bin:${PATH}"
-RUN foundryup -v ${FOUNDRY_VERSION}
+RUN foundryup -i ${FOUNDRY_VERSION}
 
 # Install AWS CLI version 2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \

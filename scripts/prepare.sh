@@ -74,24 +74,10 @@ derive_and_check "BATCHER_PRIVATE_KEY" "GS_BATCHER_ADDRESS"
 derive_and_check "PROPOSER_PRIVATE_KEY" "GS_PROPOSER_ADDRESS"
 derive_and_check "SEQUENCER_PRIVATE_KEY" "GS_SEQUENCER_ADDRESS"
 
-#cd "$OPTIMISM_DIR"/packages/contracts-bedrock
 cd "$OPTIMISM_DIR"/op-deployer
-
-## Remove old generated internal-opstack-compose.json deploy config
-#rm -f ./deploy-config/internal-opstack-compose.json
-
-## Check if deploy-config.json exists
-#if [ -f "$CONFIG_PATH/deploy-config.json" ]; then
-#  # Populate deploy-config.json with env variables
-#  echo "Populating deploy-config.json with env variables..."
-#  envsubst < "$CONFIG_PATH"/deploy-config.json > /app/temp-deploy-config.json && mv /app/temp-deploy-config.json ./deploy-config/internal-opstack-compose.json
-#else
-#  # If deploy-config.json does not exist, use config.sh to generate getting-started.json
-#  echo "Generating getting-started.json..."
-#
-#  ./scripts/getting-started/config.sh
-#  mv ./deploy-config/getting-started.json ./deploy-config/internal-opstack-compose.json
-#fi
+if [ ! -f "./bin/op-deployer" ]; then
+  just build
+fi
 
 # Fix L1 and L2 Chain ID to the one set in the environment variable
 # todo - check what BATCH_INBOX_ADDRESS_TEMP is for
@@ -104,20 +90,12 @@ cd "$OPTIMISM_DIR"/op-deployer
 #  '.l1ChainID = $l1ChainID | .l2ChainID = $l2ChainID | .batchInboxAddress = $batchInboxAddress' \
 #  ./deploy-config/internal-opstack-compose.json > /app/temp-deploy-config.json && mv /app/temp-deploy-config.json ./deploy-config/internal-opstack-compose.json
 
-## Merge deploy override
-#if [ -f "$CONFIG_PATH"/deploy-override.json ]; then
-#  jq -s '.[0] * .[1]' ./deploy-config/internal-opstack-compose.json "$CONFIG_PATH"/deploy-override.json > /app/temp-deploy-config.json && mv /app/temp-deploy-config.json ./deploy-config/internal-opstack-compose.json
-#fi
-
-## Show deployment config for better debuggability
-#cat ./deploy-config/internal-opstack-compose.json
-
 export DEPLOYER_WORKDIR=.deployer
 export DEPLOYER_INTENT_FILE=$DEPLOYER_WORKDIR/intent.toml
-if [ -z $DEPLOYMENT_STRATEGY ]
+if [ -z $DEPLOYMENT_STRATEGY ]; then
   export DEPLOYMENT_STRATEGY=live
 fi
-if [ -z $FUND_DEV_ACCOUNTS ]
+if [ -z $FUND_DEV_ACCOUNTS ]; then
   export FUND_DEV_ACCOUNTS=false
 fi
 
@@ -126,50 +104,42 @@ if [ -f "$CONFIG_PATH"/intent.toml ]; then
   update_toml_value 'deploymentStrategy' "$DEPLOYMENT_STRATEGY" "$CONFIG_PATH"/intent.toml
   cp "$CONFIG_PATH"/intent.toml "$DEPLOYER_INTENT_FILE"
 else
-  init --deployment-strategy "$DEPLOYMENT_STRATEGY" --l1-chain-id "$L1_CHAIN_ID" --l2-chain-ids "$L2_CHAIN_ID" --workdir "$DEPLOYER_WORKDIR"
+  ./bin/op-deployer init --deployment-strategy "$DEPLOYMENT_STRATEGY" --l1-chain-id "$L1_CHAIN_ID" --l2-chain-ids "$L2_CHAIN_ID" --workdir "$DEPLOYER_WORKDIR"
 fi
 
 # Modify the default values
 update_toml_value 'fundDevAccounts'       "$FUND_DEV_ACCOUNTS"    "$DEPLOYER_INTENT_FILE"
-update_toml_value 'proxyAdminOwner'       "$GS_ADMIN_ADDRESS"     "$DEPLOYER_INTENT_FILE"
-update_toml_value 'protocolVersionsOwner' "$GS_ADMIN_ADDRESS"     "$DEPLOYER_INTENT_FILE" # todo - verify that this is the correct address
-update_toml_value 'guardian'              "$GS_ADMIN_ADDRESS"     "$DEPLOYER_INTENT_FILE"
-update_toml_value 'baseFeeVaultRecipient' "$GS_ADMIN_ADDRESS"     "$DEPLOYER_INTENT_FILE"
-update_toml_value 'l1FeeVaultRecipient'   "$GS_ADMIN_ADDRESS"     "$DEPLOYER_INTENT_FILE"
-update_toml_value 'sequencerFeeVaultRecipient' "$GS_ADMIN_ADDRESS" "$DEPLOYER_INTENT_FILE"
-update_toml_value 'l1ProxyAdminOwner'     "$GS_ADMIN_ADDRESS"     "$DEPLOYER_INTENT_FILE"
-update_toml_value 'l2ProxyAdminOwner'     "$GS_ADMIN_ADDRESS"     "$DEPLOYER_INTENT_FILE"
-update_toml_value 'systemConfigOwner'     "$GS_ADMIN_ADDRESS"     "$DEPLOYER_INTENT_FILE" # todo - verify that this is the correct address
-update_toml_value 'unsafeBlockSigner'     "$GS_ADMIN_ADDRESS"     "$DEPLOYER_INTENT_FILE" # todo - verify that this is the correct address
-update_toml_value 'batcher'               "$GS_BATCHER_ADDRESS"   "$DEPLOYER_INTENT_FILE"
-update_toml_value 'proposer'              "$GS_PROPOSER_ADDRESS"  "$DEPLOYER_INTENT_FILE"
-update_toml_value 'challenger'            "$GS_ADMIN_ADDRESS"     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'proxyAdminOwner'       "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'protocolVersionsOwner' "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE" # todo - verify that this is the correct address
+update_toml_value 'guardian'              "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'baseFeeVaultRecipient' "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'l1FeeVaultRecipient'   "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'sequencerFeeVaultRecipient' "\"$GS_ADMIN_ADDRESS\"" "$DEPLOYER_INTENT_FILE"
+update_toml_value 'l1ProxyAdminOwner'     "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'l2ProxyAdminOwner'     "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'systemConfigOwner'     "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE" # todo - verify that this is the correct address
+update_toml_value 'unsafeBlockSigner'     "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE" # todo - verify that this is the correct address
+update_toml_value 'batcher'               "\"$GS_BATCHER_ADDRESS\""   "$DEPLOYER_INTENT_FILE"
+update_toml_value 'proposer'              "\"$GS_PROPOSER_ADDRESS\""  "$DEPLOYER_INTENT_FILE"
+update_toml_value 'challenger'            "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
 
 cat "$DEPLOYER_INTENT_FILE"
 
 # Generate IMPL_SALT
 if [ -z "$IMPL_SALT" ]; then
-  IMPL_SALT=$(sha256sum ./deploy-config/internal-opstack-compose.json | cut -d ' ' -f1)
+  IMPL_SALT=$(sha256sum "$DEPLOYER_INTENT_FILE" | cut -d ' ' -f1)
   export IMPL_SALT
 fi
 
-# NOTE: The $DEPLOYMENT_OUTFILE and $DEPLOY_CONFIG_PATH vars are required for line 136
-#export DEPLOYMENT_OUTFILE=./deployments/artifact.json
-#export DEPLOY_CONFIG_PATH=./deploy-config/internal-opstack-compose.json # "$CONFIG_PATH"/deploy-config.json not suitable due to the error "... not allowed to be accessed for read operations"
-
 # If not deployed
 if [ ! -f "$DEPLOYMENT_DIR"/l1-contracts.json ]; then
-  ## Determine the script path (fix for v1.7.7)
-  #DEPLOY_SCRIPT_PATH=$(test -f scripts/deploy/Deploy.s.sol && echo "scripts/deploy/Deploy.s.sol" || echo "scripts/Deploy.s.sol")
-
   ## Deploy the L1 contracts
-  #forge script "$DEPLOY_SCRIPT_PATH" --private-key "$DEPLOYER_PRIVATE_KEY" --broadcast --rpc-url "$L1_RPC_URL"
+  ./bin/op-deployer apply --workdir "$DEPLOYER_WORKDIR" --l1-rpc-url "$L1_RPC_URL" --private-key "$DEPLOYER_PRIVATE_KEY"
 
-  op-deployer apply --workdir "$DEPLOYER_WORKDIR" --l1-rpc-url "$L1_RPC_URL" --private-key "$DEPLOYER_PRIVATE_KEY" # deploy contracts
-
-  op-deployer inspect l1 --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID" > "$DEPLOYER_WORKDIR"/l1-contracts.json # outputs all L1 contract addresses for an L2 chain
-  #op-deployer inspect deploy-config --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID" # outputs the deploy config for an L2 chain
-  #op-deployer inspect l2-semvers --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID" # outputs the semvers for all L2 chains
+  ## Extract artifact info
+  ./bin/op-deployer inspect l1 --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID" > "$DEPLOYER_WORKDIR"/l1-contracts.json # outputs all L1 contract addresses for an L2 chain
+  #./bin/op-deployer inspect deploy-config --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID" # outputs the deploy config for an L2 chain
+  #./bin/op-deployer inspect l2-semvers --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID" # outputs the semvers for all L2 chains
 
   # Copy the deployment files to the data volume
   cp "$DEPLOYER_WORKDIR"/l1-contracts.json "$DEPLOYMENT_DIR"/
@@ -178,7 +148,7 @@ if [ ! -f "$DEPLOYMENT_DIR"/l1-contracts.json ]; then
 fi
 
 # Generating L2 Allocs
-export CONTRACT_ADDRESSES_PATH=$DEPLOYMENT_DIR/artifact.json
+#export CONTRACT_ADDRESSES_PATH=$DEPLOYMENT_DIR/artifact.json
 #export STATE_DUMP_PATH=$DEPLOYMENT_DIR/allocs.json
 
 #if [ -f "$STATE_DUMP_PATH" ]; then
@@ -201,8 +171,8 @@ export CONTRACT_ADDRESSES_PATH=$DEPLOYMENT_DIR/artifact.json
 #cp rollup.json "$CONFIG_PATH"/
 
 # Generate the L2 genesis files
-op-deployer inspect genesis --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID" > "$DEPLOYER_WORKDIR"/genesis.json
-op-deployer inspect rollup --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID" > "$DEPLOYER_WORKDIR"/rollup.json
+./bin/op-deployer inspect genesis --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID" > "$DEPLOYER_WORKDIR"/genesis.json
+./bin/op-deployer inspect rollup --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID" > "$DEPLOYER_WORKDIR"/rollup.json
 cp "$DEPLOYER_WORKDIR"/genesis.json "$CONFIG_PATH"/
 cp "$DEPLOYER_WORKDIR"/rollup.json "$CONFIG_PATH"/
 
