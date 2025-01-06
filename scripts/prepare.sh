@@ -10,9 +10,7 @@ set -e
 if [ ! -f "$BIN_DIR/op-node" ] || [ ! -f "$BIN_DIR/op-batcher" ] || [ ! -f "$BIN_DIR/op-proposer" ] || [ ! -f "$BIN_DIR/geth" ]; then
   # Build op-node, op-batcher and op-proposer
   cd "$OPTIMISM_DIR"
-  #pnpm install
   make op-node op-batcher op-proposer
-  #pnpm build
 
   # Copy binaries to the bin volume
   cp -f "$OPTIMISM_DIR"/op-node/bin/op-node "$BIN_DIR"/
@@ -74,27 +72,23 @@ derive_and_check "BATCHER_PRIVATE_KEY" "GS_BATCHER_ADDRESS"
 derive_and_check "PROPOSER_PRIVATE_KEY" "GS_PROPOSER_ADDRESS"
 derive_and_check "SEQUENCER_PRIVATE_KEY" "GS_SEQUENCER_ADDRESS"
 
+# build op-deployer, if not already present
 cd "$OPTIMISM_DIR"/op-deployer
 if [ ! -f "./bin/op-deployer" ]; then
   just build
 fi
 
-# Fix L1 and L2 Chain ID to the one set in the environment variable
-# todo - check what BATCH_INBOX_ADDRESS_TEMP is for
 #BATCH_INBOX_ADDRESS_TEMP=$(openssl rand -hex 32 | head -c 40)
 #export BATCH_INBOX_ADDRESS_TEMP
-#jq \
-#  --argjson l1ChainID "$L1_CHAIN_ID" \
-#  --argjson l2ChainID "$L2_CHAIN_ID" \
-#  --arg batchInboxAddress "0x$BATCH_INBOX_ADDRESS_TEMP" \
-#  '.l1ChainID = $l1ChainID | .l2ChainID = $l2ChainID | .batchInboxAddress = $batchInboxAddress' \
-#  ./deploy-config/internal-opstack-compose.json > /app/temp-deploy-config.json && mv /app/temp-deploy-config.json ./deploy-config/internal-opstack-compose.json
 
 export DEPLOYER_WORKDIR=.deployer
 export DEPLOYER_INTENT_FILE=$DEPLOYER_WORKDIR/intent.toml
+
+# default the deployment strategy to 'live' (the alternative is 'genesis')
 if [ -z $DEPLOYMENT_STRATEGY ]; then
   export DEPLOYMENT_STRATEGY=live
 fi
+
 if [ -z $FUND_DEV_ACCOUNTS ]; then
   export FUND_DEV_ACCOUNTS=false
 fi
@@ -107,22 +101,23 @@ else
   ./bin/op-deployer init --deployment-strategy "$DEPLOYMENT_STRATEGY" --l1-chain-id "$L1_CHAIN_ID" --l2-chain-ids "$L2_CHAIN_ID" --workdir "$DEPLOYER_WORKDIR"
 fi
 
-# Modify the default values
-update_toml_value 'fundDevAccounts'       "$FUND_DEV_ACCOUNTS"    "$DEPLOYER_INTENT_FILE"
+# Modify the default values in the intent file
+update_toml_value 'fundDevAccounts'       "$FUND_DEV_ACCOUNTS"        "$DEPLOYER_INTENT_FILE"
 update_toml_value 'proxyAdminOwner'       "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
-update_toml_value 'protocolVersionsOwner' "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE" # todo - verify that this is the correct address
+update_toml_value 'protocolVersionsOwner' "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
 update_toml_value 'guardian'              "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
 update_toml_value 'baseFeeVaultRecipient' "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
 update_toml_value 'l1FeeVaultRecipient'   "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
 update_toml_value 'sequencerFeeVaultRecipient' "\"$GS_ADMIN_ADDRESS\"" "$DEPLOYER_INTENT_FILE"
 update_toml_value 'l1ProxyAdminOwner'     "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
 update_toml_value 'l2ProxyAdminOwner'     "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
-update_toml_value 'systemConfigOwner'     "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE" # todo - verify that this is the correct address
-update_toml_value 'unsafeBlockSigner'     "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE" # todo - verify that this is the correct address
+update_toml_value 'systemConfigOwner'     "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'unsafeBlockSigner'     "\"$GS_SEQUENCER_ADDRESS\"" "$DEPLOYER_INTENT_FILE"
 update_toml_value 'batcher'               "\"$GS_BATCHER_ADDRESS\""   "$DEPLOYER_INTENT_FILE"
 update_toml_value 'proposer'              "\"$GS_PROPOSER_ADDRESS\""  "$DEPLOYER_INTENT_FILE"
 update_toml_value 'challenger'            "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
 
+# output the contents of the intetn file for debugging
 cat "$DEPLOYER_INTENT_FILE"
 
 # Generate IMPL_SALT
@@ -133,11 +128,11 @@ fi
 
 # If not deployed
 if [ ! -f "$DEPLOYMENT_DIR"/addresses.json ]; then
-  ## Deploy the L1 contracts
+  # Deploy the L1 contracts
   ./bin/op-deployer apply --workdir "$DEPLOYER_WORKDIR" --l1-rpc-url "$L1_RPC_URL" --private-key "$DEPLOYER_PRIVATE_KEY"
 fi
 
-## Extract artifact info
+# Extract artifact info and genesis files.
 ./bin/op-deployer inspect superchain-registry --workdir "$DEPLOYER_WORKDIR" "$L2_CHAIN_ID"
 
 # Copy the deployment files to the data volume
@@ -146,17 +141,11 @@ cp "$DEPLOYER_WORKDIR"/rollup.json "$DEPLOYMENT_DIR"/
 cp "$DEPLOYER_WORKDIR"/deploy-config.json "$DEPLOYMENT_DIR"/
 cp "$DEPLOYER_WORKDIR"/superchain-registry.env "$DEPLOYMENT_DIR"/
 cp "$DEPLOYER_WORKDIR"/addresses.json  "$DEPLOYMENT_DIR"/
-cp $DEPLOYER_INTENT_FILE "$CONFIG_PATH"/intent.toml
+
+# copy the genesis files to the config folder
+cp "$DEPLOYER_INTENT_FILE" "$CONFIG_PATH"/intent.toml
 cp "$DEPLOYER_WORKDIR"/genesis.json "$CONFIG_PATH"/
 cp "$DEPLOYER_WORKDIR"/rollup.json "$CONFIG_PATH"/
-
-#export STATE_DUMP_PATH=$DEPLOYMENT_DIR/allocs.json
-
-#if [ -f "$STATE_DUMP_PATH" ]; then
-#  echo "State dump already exists, skipping state dump generation."
-#else
-#  forge script scripts/L2Genesis.s.sol:L2Genesis --chain-id "$L2_CHAIN_ID"  --sig 'runWithAllUpgrades()' --private-key "$DEPLOYER_PRIVATE_KEY" # OR runWithStateDump()
-#fi
 
 # Reset repository for cleanup
 cd "$OPTIMISM_DIR"
