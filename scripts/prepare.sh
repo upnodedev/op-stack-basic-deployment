@@ -100,10 +100,10 @@ fi
 
 # Create amd modify the intent.toml file
 if [ -f "$CONFIG_PATH"/intent.toml ]; then
-  #update_toml_value 'deploymentStrategy' "$DEPLOYMENT_STRATEGY" "$CONFIG_PATH"/intent.toml
-  #update_toml_value 'configType' "$INTENT_CONFIG_TYPE" "$CONFIG_PATH"/intent.toml
-  dasel put -t string -v "$DEPLOYMENT_STRATEGY" -f "$CONFIG_PATH"/intent.toml -r toml '.deploymentStrategy'
-  dasel put -t string -v "$INTENT_CONFIG_TYPE" -f "$CONFIG_PATH"/intent.toml -r toml '.configType'
+  update_toml_value 'deploymentStrategy' "$DEPLOYMENT_STRATEGY" "$CONFIG_PATH"/intent.toml
+  update_toml_value 'configType' "$INTENT_CONFIG_TYPE" "$CONFIG_PATH"/intent.toml
+  #dasel put -t string -v "$DEPLOYMENT_STRATEGY" -f "$CONFIG_PATH"/intent.toml -r toml '.deploymentStrategy'
+  #dasel put -t string -v "$INTENT_CONFIG_TYPE" -f "$CONFIG_PATH"/intent.toml -r toml '.configType'
   cp "$CONFIG_PATH"/intent.toml "$DEPLOYER_INTENT_FILE"
 else
   ./bin/op-deployer init --intent-config-type "$INTENT_CONFIG_TYPE" --deployment-strategy "$DEPLOYMENT_STRATEGY" --l1-chain-id "$L1_CHAIN_ID" --l2-chain-ids "$L2_CHAIN_ID" --workdir "$DEPLOYER_WORKDIR"
@@ -131,48 +131,48 @@ fi
 
 
 # Modify the default values in the intent file
-#update_toml_value 'fundDevAccounts'       "$FUND_DEV_ACCOUNTS"        "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'proxyAdminOwner'       "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'protocolVersionsOwner' "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'guardian'              "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'baseFeeVaultRecipient' "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'l1FeeVaultRecipient'   "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'sequencerFeeVaultRecipient' "\"$GS_ADMIN_ADDRESS\"" "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'l1ProxyAdminOwner'     "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'l2ProxyAdminOwner'     "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'systemConfigOwner'     "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'unsafeBlockSigner'     "\"$GS_SEQUENCER_ADDRESS\"" "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'batcher'               "\"$GS_BATCHER_ADDRESS\""   "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'proposer'              "\"$GS_PROPOSER_ADDRESS\""  "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'challenger'            "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'l1ContractsLocator'    "\"$L1_CONTRACTS_LOCATOR\"" "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'l2ContractsLocator'    "\"$L2_CONTRACTS_LOCATOR\"" "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'eip1559DenominatorCanyon' "$EIP1559_DENOMINATOR_CANYON" "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'eip1559Denominator'     "$EIP1559_DENOMINATOR"     "$DEPLOYER_INTENT_FILE"
-#update_toml_value 'eip1559Elasticity'      "$EIP1559_ELASTICITY"      "$DEPLOYER_INTENT_FILE"
+update_toml_value 'fundDevAccounts'       "$FUND_DEV_ACCOUNTS"        "$DEPLOYER_INTENT_FILE"
+update_toml_value 'proxyAdminOwner'       "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'protocolVersionsOwner' "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'guardian'              "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'baseFeeVaultRecipient' "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'l1FeeVaultRecipient'   "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'sequencerFeeVaultRecipient' "\"$GS_ADMIN_ADDRESS\"" "$DEPLOYER_INTENT_FILE"
+update_toml_value 'l1ProxyAdminOwner'     "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'l2ProxyAdminOwner'     "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'systemConfigOwner'     "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'unsafeBlockSigner'     "\"$GS_SEQUENCER_ADDRESS\"" "$DEPLOYER_INTENT_FILE"
+update_toml_value 'batcher'               "\"$GS_BATCHER_ADDRESS\""   "$DEPLOYER_INTENT_FILE"
+update_toml_value 'proposer'              "\"$GS_PROPOSER_ADDRESS\""  "$DEPLOYER_INTENT_FILE"
+update_toml_value 'challenger'            "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'l1ContractsLocator'    "\"$L1_CONTRACTS_LOCATOR\"" "$DEPLOYER_INTENT_FILE"
+update_toml_value 'l2ContractsLocator'    "\"$L2_CONTRACTS_LOCATOR\"" "$DEPLOYER_INTENT_FILE"
+update_toml_value 'eip1559DenominatorCanyon' "$EIP1559_DENOMINATOR_CANYON" "$DEPLOYER_INTENT_FILE"
+update_toml_value 'eip1559Denominator'     "$EIP1559_DENOMINATOR"     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'eip1559Elasticity'      "$EIP1559_ELASTICITY"      "$DEPLOYER_INTENT_FILE"
 
-dasel put -t bool -v "$FUND_DEV_ACCOUNTS" -f "$DEPLOYER_INTENT_FILE" -r toml '.fundDevAccounts'
-dasel put -t string -v "\"$L1_CONTRACTS_LOCATOR\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.l1ContractsLocator'
-dasel put -t string -v "\"$L2_CONTRACTS_LOCATOR\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.l2ContractsLocator'
+#dasel put -t bool -v "$FUND_DEV_ACCOUNTS" -f "$DEPLOYER_INTENT_FILE" -r toml '.fundDevAccounts'
+#dasel put -t string -v "\"$L1_CONTRACTS_LOCATOR\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.l1ContractsLocator'
+#dasel put -t string -v "\"$L2_CONTRACTS_LOCATOR\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.l2ContractsLocator'
 
-dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.superchainRoles.proxyAdminOwner'
-dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.superchainRoles.protocolVersionsOwner'
-dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.superchainRoles.guardian'
+#dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.superchainRoles.proxyAdminOwner'
+#dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.superchainRoles.protocolVersionsOwner'
+#dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.superchainRoles.guardian'
 
-dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().baseFeeVaultRecipient'
-dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().l1FeeVaultRecipient'
-dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().sequencerFeeVaultRecipient'
-dasel put -t number -v "$EIP1559_DENOMINATOR_CANYON" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().eip1559DenominatorCanyon'
-dasel put -t number -v "$EIP1559_DENOMINATOR" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().eip1559Denominator'
-dasel put -t number -v "$EIP1559_ELASTICITY" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().eip1559Elasticity'
+#dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().baseFeeVaultRecipient'
+#dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().l1FeeVaultRecipient'
+#dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().sequencerFeeVaultRecipient'
+#dasel put -t number -v "$EIP1559_DENOMINATOR_CANYON" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().eip1559DenominatorCanyon'
+#dasel put -t number -v "$EIP1559_DENOMINATOR" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().eip1559Denominator'
+#dasel put -t number -v "$EIP1559_ELASTICITY" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().eip1559Elasticity'
 
-dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().roles.l1ProxyAdminOwner'
-dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().roles.l2ProxyAdminOwner'
-dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().roles.systemConfigOwner'
-dasel put -t string -v "\"$GS_SEQUENCER_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().roles.unsafeBlockSigner'
-dasel put -t string -v "\"$GS_BATCHER_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().roles.batcher'
-dasel put -t string -v "\"$GS_PROPOSER_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().roles.proposer'
-dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().roles.challenger'
+#dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().roles.l1ProxyAdminOwner'
+#dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().roles.l2ProxyAdminOwner'
+#dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().roles.systemConfigOwner'
+#dasel put -t string -v "\"$GS_SEQUENCER_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().roles.unsafeBlockSigner'
+#dasel put -t string -v "\"$GS_BATCHER_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().roles.batcher'
+#dasel put -t string -v "\"$GS_PROPOSER_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().roles.proposer'
+#dasel put -t string -v "\"$GS_ADMIN_ADDRESS\"" -f "$DEPLOYER_INTENT_FILE" -r toml '.chains.first().roles.challenger'
 
 # output the contents of the intetn file for debugging
 cat "$DEPLOYER_INTENT_FILE"

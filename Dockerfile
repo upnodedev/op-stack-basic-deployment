@@ -26,8 +26,9 @@ RUN mkdir -p /app/bin
 RUN curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /app/bin
 ENV PATH="$PATH:/app/bin"
 
-# Install dasel
-RUN wget https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_amd64 -O /app/bin/dasel
+## Install dasel
+#RUN wget https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_amd64 -O /app/bin/dasel
+#RUN chmod +x /app/bin/dasel
 
 # Install Go
 RUN ARCH=$(dpkg --print-architecture) && echo "Architecture: ${ARCH}" && \
