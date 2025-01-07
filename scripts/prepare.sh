@@ -103,7 +103,7 @@ if [ -f "$CONFIG_PATH"/intent.toml ]; then
   update_toml_value --intent-config-type "$INTENT_CONFIG_TYPE" 'deploymentStrategy' "$DEPLOYMENT_STRATEGY" "$CONFIG_PATH"/intent.toml
   cp "$CONFIG_PATH"/intent.toml "$DEPLOYER_INTENT_FILE"
 else
-  ./bin/op-deployer --intent-config-type "$INTENT_CONFIG_TYPE" init --deployment-strategy "$DEPLOYMENT_STRATEGY" --l1-chain-id "$L1_CHAIN_ID" --l2-chain-ids "$L2_CHAIN_ID" --workdir "$DEPLOYER_WORKDIR"
+  ./bin/op-deployer init --intent-config-type "$INTENT_CONFIG_TYPE" --deployment-strategy "$DEPLOYMENT_STRATEGY" --l1-chain-id "$L1_CHAIN_ID" --l2-chain-ids "$L2_CHAIN_ID" --workdir "$DEPLOYER_WORKDIR"
 fi
 
 EIP1559_DENOMINATOR_CANYON = 250
