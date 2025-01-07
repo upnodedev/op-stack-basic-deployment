@@ -100,7 +100,8 @@ fi
 
 # Create amd modify the intent.toml file
 if [ -f "$CONFIG_PATH"/intent.toml ]; then
-  update_toml_value --intent-config-type "$INTENT_CONFIG_TYPE" 'deploymentStrategy' "$DEPLOYMENT_STRATEGY" "$CONFIG_PATH"/intent.toml
+  update_toml_value 'deploymentStrategy' "$DEPLOYMENT_STRATEGY" "$CONFIG_PATH"/intent.toml
+  update_toml_value 'configType' "$INTENT_CONFIG_TYPE" "$CONFIG_PATH"/intent.toml
   cp "$CONFIG_PATH"/intent.toml "$DEPLOYER_INTENT_FILE"
 else
   ./bin/op-deployer init --intent-config-type "$INTENT_CONFIG_TYPE" --deployment-strategy "$DEPLOYMENT_STRATEGY" --l1-chain-id "$L1_CHAIN_ID" --l2-chain-ids "$L2_CHAIN_ID" --workdir "$DEPLOYER_WORKDIR"
