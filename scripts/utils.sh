@@ -26,5 +26,7 @@ update_toml_value() {
   local new_value=$2
   local file_name=$3
 
-  sed -i -e '/'"$variable_name"' =/ s/= .*/= '"$new_value"'/' "$file_name"
+  local escaped_value = $(printf '%s\n' "$new_value" | sed -e 's/[\/&]/\\&/g')
+
+  sed -i -e '/'"$variable_name"' =/ s/= .*/= '"$escaped_value"'/' "$file_name"
 }

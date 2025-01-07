@@ -93,13 +93,25 @@ if [ -z $FUND_DEV_ACCOUNTS ]; then
   export FUND_DEV_ACCOUNTS=false
 fi
 
+# default to 'custom' (alternative values are 'standard' and 'strict')
+if [ -z $INTENT_CONFIG_TYPE ]; then
+  export INTENT_CONFIG_TYPE=custom
+fi
+
 # Create amd modify the intent.toml file
 if [ -f "$CONFIG_PATH"/intent.toml ]; then
-  update_toml_value 'deploymentStrategy' "$DEPLOYMENT_STRATEGY" "$CONFIG_PATH"/intent.toml
+  update_toml_value --intent-config-type "$INTENT_CONFIG_TYPE" 'deploymentStrategy' "$DEPLOYMENT_STRATEGY" "$CONFIG_PATH"/intent.toml
   cp "$CONFIG_PATH"/intent.toml "$DEPLOYER_INTENT_FILE"
 else
   ./bin/op-deployer init --deployment-strategy "$DEPLOYMENT_STRATEGY" --l1-chain-id "$L1_CHAIN_ID" --l2-chain-ids "$L2_CHAIN_ID" --workdir "$DEPLOYER_WORKDIR"
 fi
+
+EIP1559_DENOMINATOR_CANYON = 250
+EIP1559_DENOMINATOR = 50
+EIP1559_ELASTICITY = 6
+
+export L1_CONTRACTS_LOCATOR = tag://op-contracts/v1.6.0
+export L2_CONTRACTS_LOCATOR = tag://op-contracts/v1.7.0-beta.1+l2-contracts
 
 # Modify the default values in the intent file
 update_toml_value 'fundDevAccounts'       "$FUND_DEV_ACCOUNTS"        "$DEPLOYER_INTENT_FILE"
@@ -116,6 +128,11 @@ update_toml_value 'unsafeBlockSigner'     "\"$GS_SEQUENCER_ADDRESS\"" "$DEPLOYER
 update_toml_value 'batcher'               "\"$GS_BATCHER_ADDRESS\""   "$DEPLOYER_INTENT_FILE"
 update_toml_value 'proposer'              "\"$GS_PROPOSER_ADDRESS\""  "$DEPLOYER_INTENT_FILE"
 update_toml_value 'challenger'            "\"$GS_ADMIN_ADDRESS\""     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'l1ContractsLocator'    "\"$L1_CONTRACTS_LOCATOR\"" "$DEPLOYER_INTENT_FILE"
+update_toml_value 'l2ContractsLocator'    "\"$L2_CONTRACTS_LOCATOR\"" "$DEPLOYER_INTENT_FILE"
+update_toml_value 'eip1559DenominatorCanyon' "$EIP1559_DENOMINATOR_CANYON" "$DEPLOYER_INTENT_FILE"
+update_toml_value 'eip1559Denominator'     "$EIP1559_DENOMINATOR"     "$DEPLOYER_INTENT_FILE"
+update_toml_value 'eip1559Elasticity'      "$EIP1559_ELASTICITY"      "$DEPLOYER_INTENT_FILE"
 
 # output the contents of the intetn file for debugging
 cat "$DEPLOYER_INTENT_FILE"
