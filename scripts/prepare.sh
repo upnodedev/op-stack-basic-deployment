@@ -106,9 +106,9 @@ else
   ./bin/op-deployer init --intent-config-type "$INTENT_CONFIG_TYPE" --deployment-strategy "$DEPLOYMENT_STRATEGY" --l1-chain-id "$L1_CHAIN_ID" --l2-chain-ids "$L2_CHAIN_ID" --workdir "$DEPLOYER_WORKDIR"
 fi
 
-EIP1559_DENOMINATOR_CANYON = 250
-EIP1559_DENOMINATOR = 50
-EIP1559_ELASTICITY = 6
+export EIP1559_DENOMINATOR_CANYON = 250
+export EIP1559_DENOMINATOR = 50
+export EIP1559_ELASTICITY = 6
 
 export L1_CONTRACTS_LOCATOR = tag://op-contracts/v1.6.0
 export L2_CONTRACTS_LOCATOR = tag://op-contracts/v1.7.0-beta.1+l2-contracts
