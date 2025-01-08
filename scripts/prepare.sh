@@ -78,9 +78,6 @@ if [ ! -f "./bin/op-deployer" ]; then
   just build
 fi
 
-#BATCH_INBOX_ADDRESS_TEMP=$(openssl rand -hex 32 | head -c 40)
-#export BATCH_INBOX_ADDRESS_TEMP
-
 export DEPLOYER_WORKDIR=.deployer
 export DEPLOYER_INTENT_FILE=$DEPLOYER_WORKDIR/intent.toml
 
@@ -102,7 +99,7 @@ fi
 if [ -f "$CONFIG_PATH"/intent.toml ]; then
   dasel put -t string -v "$DEPLOYMENT_STRATEGY" -f "$CONFIG_PATH"/intent.toml -r toml '.deploymentStrategy'
   # note: this condition is to support deployment using the optimism monorepo v1.10.0, which was committed before the config type parameter was supported
-  if [ "$INTENT_CONFIG_TYPE" == "standard"]; then
+  if [ "$INTENT_CONFIG_TYPE" == "standard" ]; then
     dasel delete -f "$CONFIG_PATH"/intent.toml -r toml '.configType'
   else
     dasel put -t string -v "$INTENT_CONFIG_TYPE" -f "$CONFIG_PATH"/intent.toml -r toml '.configType'
@@ -110,7 +107,7 @@ if [ -f "$CONFIG_PATH"/intent.toml ]; then
   cp "$CONFIG_PATH"/intent.toml "$DEPLOYER_INTENT_FILE"
 else
   # note: this condition is to support deployment using the optimism monorepo v1.10.0, which was committed before the config type parameter was supported
-  if [ "$INTENT_CONFIG_TYPE" == "standard"]; then
+  if [ "$INTENT_CONFIG_TYPE" == "standard" ]; then
     ./bin/op-deployer init --deployment-strategy "$DEPLOYMENT_STRATEGY" --l1-chain-id "$L1_CHAIN_ID" --l2-chain-ids "$L2_CHAIN_ID" --workdir "$DEPLOYER_WORKDIR"
   else
     ./bin/op-deployer init --intent-config-type "$INTENT_CONFIG_TYPE" --deployment-strategy "$DEPLOYMENT_STRATEGY" --l1-chain-id "$L1_CHAIN_ID" --l2-chain-ids "$L2_CHAIN_ID" --workdir "$DEPLOYER_WORKDIR"
