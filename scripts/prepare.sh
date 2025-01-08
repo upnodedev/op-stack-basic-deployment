@@ -101,10 +101,20 @@ fi
 # Create amd modify the intent.toml file
 if [ -f "$CONFIG_PATH"/intent.toml ]; then
   dasel put -t string -v "$DEPLOYMENT_STRATEGY" -f "$CONFIG_PATH"/intent.toml -r toml '.deploymentStrategy'
-  dasel put -t string -v "$INTENT_CONFIG_TYPE" -f "$CONFIG_PATH"/intent.toml -r toml '.configType'
+  # note: this condition is to support deployment using the optimism monorepo v1.10.0, which was committed before the config type parameter was supported
+  if [ "$INTENT_CONFIG_TYPE" == "standard"]; then
+    dasel delete -f "$CONFIG_PATH"/intent.toml -r toml '.configType'
+  else
+    dasel put -t string -v "$INTENT_CONFIG_TYPE" -f "$CONFIG_PATH"/intent.toml -r toml '.configType'
+  fi
   cp "$CONFIG_PATH"/intent.toml "$DEPLOYER_INTENT_FILE"
 else
-  ./bin/op-deployer init --intent-config-type "$INTENT_CONFIG_TYPE" --deployment-strategy "$DEPLOYMENT_STRATEGY" --l1-chain-id "$L1_CHAIN_ID" --l2-chain-ids "$L2_CHAIN_ID" --workdir "$DEPLOYER_WORKDIR"
+  # note: this condition is to support deployment using the optimism monorepo v1.10.0, which was committed before the config type parameter was supported
+  if [ "$INTENT_CONFIG_TYPE" == "standard"]; then
+    ./bin/op-deployer init --deployment-strategy "$DEPLOYMENT_STRATEGY" --l1-chain-id "$L1_CHAIN_ID" --l2-chain-ids "$L2_CHAIN_ID" --workdir "$DEPLOYER_WORKDIR"
+  else
+    ./bin/op-deployer init --intent-config-type "$INTENT_CONFIG_TYPE" --deployment-strategy "$DEPLOYMENT_STRATEGY" --l1-chain-id "$L1_CHAIN_ID" --l2-chain-ids "$L2_CHAIN_ID" --workdir "$DEPLOYER_WORKDIR"
+  fi
 fi
 
 if [ -z $EIP1559_DENOMINATOR_CANYON ]; then
